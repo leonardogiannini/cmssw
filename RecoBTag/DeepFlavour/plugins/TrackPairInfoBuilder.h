@@ -167,7 +167,44 @@ public:
     
     
     // esempio per controllo
-    const float Get_pca_jetAxis_dist() const {return pca_jetAxis_dist_;}
+   
+    const float get_track_pt() const {return track_pt_;}
+    const float get_track_eta() const {return track_eta_;}
+    const float get_track_phi() const {return track_phi_;}
+    const float get_track_dz() const {return track_dz_;}
+    const float get_track_dxy() const {return track_dxy_;}
+    const float get_pca_distance() const {return pca_distance_;}
+    const float get_pca_significance() const {return pca_significance_; }   
+    const float get_pcaSeed_x() const {return pcaSeed_x_;}
+    const float get_pcaSeed_y() const {return pcaSeed_y_;}
+    const float get_pcaSeed_z() const {return pcaSeed_z_;}
+    const float get_pcaSeed_xerr() const {return pcaSeed_xerr_;}
+    const float get_pcaSeed_yerr() const {return pcaSeed_yerr_;}
+    const float get_pcaSeed_zerr() const {return pcaSeed_zerr_;}
+    const float get_pcaTrack_x() const {return pcaTrack_x_;}
+    const float get_pcaTrack_y() const {return pcaTrack_y_;}
+    const float get_pcaTrack_z() const {return pcaTrack_z_;}
+    const float get_pcaTrack_xerr() const {return pcaTrack_xerr_;}
+    const float get_pcaTrack_yerr() const {return pcaTrack_yerr_;}
+    const float get_pcaTrack_zerr() const {return pcaTrack_zerr_;}    
+    const float get_dotprodTrack() const {return dotprodTrack_;}
+    const float get_dotprodSeed() const {return dotprodSeed_;}
+    const float get_pcaSeed_dist() const {return pcaSeed_dist_;}
+    const float get_pcaTrack_dist() const {return pcaTrack_dist_;}    
+    const float get_track_candMass() const {return track_candMass_;}
+    const float get_track_ip2d() const {return track_ip2d_;}
+    const float get_track_ip2dSig() const {return track_ip2dSig_;}
+    const float get_track_ip3d() const {return track_ip3d_;}
+    const float get_track_ip3dSig() const {return track_ip3dSig_; }   
+    const float get_dotprodTrackSeed2D() const {return dotprodTrackSeed2D_;}
+    const float get_dotprodTrackSeed2DV() const {return dotprodTrackSeed2DV_;}
+    const float get_dotprodTrackSeed3D() const {return dotprodTrackSeed3D_;}
+    const float get_dotprodTrackSeed3DV() const {return dotprodTrackSeed3DV_;}    
+    const float get_pca_jetAxis_dist() const {return pca_jetAxis_dist_;}
+    const float get_pca_jetAxis_dotprod() const {return pca_jetAxis_dotprod_;}
+    const float get_pca_jetAxis_dEta() const {return pca_jetAxis_dEta_;}
+    const float get_pca_jetAxis_dPhi() const {return pca_jetAxis_dPhi_;}
+    
     
 
 
