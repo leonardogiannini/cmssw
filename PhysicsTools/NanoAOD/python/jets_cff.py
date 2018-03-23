@@ -45,12 +45,40 @@ tightJetIdAK8 = cms.EDProducer("PatJetIDValueMapProducer",
 )
 
 
+bJetVars = cms.EDProducer("JetRegressionVarProducer",
+    pvsrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
+    src = cms.InputTag("slimmedJets"),    
+    svsrc = cms.InputTag("slimmedSecondaryVertices"),
+    #musrc = cms.InputTag("slimmedMuons"),
+    #elesrc = cms.InputTag("slimmedElectrons")
+)
+
+
 slimmedJetsWithUserData = cms.EDProducer("PATJetUserDataEmbedder",
      src = cms.InputTag("slimmedJets"),
-     userFloats = cms.PSet(),
+     userFloats = cms.PSet(
+         leadTrackPt = cms.InputTag("bJetVars:leadTrackPt"),
+         leptonPtRel = cms.InputTag("bJetVars:leptonPtRel"),
+         leptonPtRatio = cms.InputTag("bJetVars:leptonPtRatio"),
+         leptonPtRelInv = cms.InputTag("bJetVars:leptonPtRelInv"),
+         leptonPtRelv0 = cms.InputTag("bJetVars:leptonPtRelv0"),
+         leptonPtRatiov0 = cms.InputTag("bJetVars:leptonPtRatiov0"),
+         leptonPtRelInvv0 = cms.InputTag("bJetVars:leptonPtRelInvv0"),
+         leptonDeltaR = cms.InputTag("bJetVars:leptonDeltaR"),
+         leptonPt = cms.InputTag("bJetVars:leptonPt"),
+         vtxPt = cms.InputTag("bJetVars:vtxPt"),
+         vtxMass = cms.InputTag("bJetVars:vtxMass"),
+         vtx3dL = cms.InputTag("bJetVars:vtx3dL"),
+         vtx3deL = cms.InputTag("bJetVars:vtx3deL"),
+         ptD = cms.InputTag("bJetVars:ptD"),
+         
+         ),
      userInts = cms.PSet(
         tightId = cms.InputTag("tightJetId"),
         looseId = cms.InputTag("looseJetId"),
+        vtxNtrk = cms.InputTag("bJetVars:vtxNtrk"),
+        leptonPdgId = cms.InputTag("bJetVars:leptonPdgId"),
+        
      ),
 )
 
@@ -63,8 +91,9 @@ slimmedJetsAK8WithUserData = cms.EDProducer("PATJetUserDataEmbedder",
      ),
 )
 
-
 from  PhysicsTools.PatAlgos.recoLayer0.jetCorrFactors_cfi import *
+# Note: Safe to always add 'L2L3Residual' as MC contains dummy L2L3Residual corrections (always set to 1)
+#      (cf. https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#CMSSW_7_6_4_and_above )
 jetCorrFactors = patJetCorrFactors.clone(src='slimmedJetsWithUserData',
     levels = cms.vstring('L1FastJet',
         'L2Relative',
@@ -105,6 +134,9 @@ finalJetsAK8 = cms.EDFilter("PATJetRefSelector",
 )
 
 
+
+
+
 ##################### Tables for final output and docs ##########################
 
 
@@ -140,7 +172,27 @@ jetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
         chHEF = Var("chargedHadronEnergyFraction()", float, doc="charged Hadron Energy Fraction", precision= 6),
         neHEF = Var("neutralHadronEnergyFraction()", float, doc="neutral Hadron Energy Fraction", precision= 6),
         chEmEF = Var("chargedEmEnergyFraction()", float, doc="charged Electromagnetic Energy Fraction", precision= 6),
-        neEmEF = Var("neutralEmEnergyFraction()", float, doc="neutral Electromagnetic Energy Fraction", precision= 6)
+        neEmEF = Var("neutralEmEnergyFraction()", float, doc="neutral Electromagnetic Energy Fraction", precision= 6),
+        leadTrackPt = Var("userFloat('leadTrackPt')", float, doc="leading Track pT", precision= 10),
+        leptonPtRel = Var("userFloat('leptonPtRel')", float, doc="leptonPtRel", precision= 10),
+        leptonPtRelInv = Var("userFloat('leptonPtRelInv')", float, doc="leptonPtRelInv", precision= 10),
+        leptonPtRatio = Var("userFloat('leptonPtRatio')", float, doc="leptonPtRatio", precision= 10),
+        leptonPtRelv0 = Var("userFloat('leptonPtRelv0')", float, doc="leptonPtRel from heppy", precision= 10),
+        leptonPtRelInvv0 = Var("userFloat('leptonPtRelInvv0')", float, doc="leptonPtRelInv from heppy", precision= 10),
+        leptonPtRatiov0 = Var("userFloat('leptonPtRatiov0')", float, doc="leptonPtRatio from heppy", precision= 10),
+        leptonPt = Var("userFloat('leptonPt')", float, doc="leptonPt", precision= 10),
+        leptonDeltaR = Var("userFloat('leptonDeltaR')", float, doc="lepton dR", precision= 10),
+        leptonPdgId = Var("userInt('leptonPdgId')", float, doc="leptonPdgId"),
+        vtxPt = Var("userFloat('vtxPt')", float, doc="max SIP vtx pT", precision= 10),
+        vtxMass = Var("userFloat('vtxMass')", float, doc="max SIP vtx mass", precision= 10),
+        vtx3dL = Var("userFloat('vtx3dL')", float, doc="max SIP vtx 3d ip", precision= 10),
+        vtx3deL = Var("userFloat('vtx3deL')", float, doc="max SIP vtx 3d iperr", precision= 10),
+        vtxNtrk = Var("userInt('vtxNtrk')", float, doc="max SIP vtx ntracks"),
+        ptD = Var("userFloat('ptD')",float,doc="qgl input ptD",precision=6),
+        JEC1 = Var("jecFactor('L1FastJet')",float,doc="jec..",precision=6),
+        JEC2 = Var("jecFactor('L2Relative')",float,doc="jec..",precision=6),
+        JEC3 = Var("jecFactor('L3Absolute')",float,doc="jec..",precision=6),
+        ##ptD #JEC #leptonptrelinv, ptrel, 
     )
 )
 #jets are not as precise as muons
@@ -170,6 +222,11 @@ bjetMVA= cms.EDProducer("BJetEnergyRegressionMVA",
 				0)'''),
     )
 
+)
+EnergyRingsTable = cms.EDProducer("EnergyRingsTableProducer",
+    name = cms.string("Jet"),
+   # src = cms.InputTag("slimmedJets"),
+    src = cms.InputTag("linkedObjects","jets"),
 )
 
 ##### Soft Activity tables
@@ -386,9 +443,9 @@ run2_miniAOD_80XLegacy.toModify( genJetFlavourTable, jetFlavourInfos = cms.Input
 run2_nanoAOD_92X.toModify( genJetFlavourTable, jetFlavourInfos = cms.InputTag("genJetFlavourAssociation"),)
 
 #before cross linking
-jetSequence = cms.Sequence(looseJetId+tightJetId+slimmedJetsWithUserData+jetCorrFactors+updatedJets+looseJetIdAK8+tightJetIdAK8+slimmedJetsAK8WithUserData+jetCorrFactorsAK8+updatedJetsAK8+chsForSATkJets+softActivityJets+softActivityJets2+softActivityJets5+softActivityJets10+finalJets+finalJetsAK8)
+jetSequence = cms.Sequence(looseJetId+tightJetId+bJetVars+slimmedJetsWithUserData+jetCorrFactors+updatedJets+looseJetIdAK8+tightJetIdAK8+slimmedJetsAK8WithUserData+jetCorrFactorsAK8+updatedJetsAK8+chsForSATkJets+softActivityJets+softActivityJets2+softActivityJets5+softActivityJets10+finalJets+finalJetsAK8)
 #after cross linkining
-jetTables = cms.Sequence(bjetMVA+ jetTable+fatJetTable+subJetTable+saJetTable+saTable)
+jetTables = cms.Sequence(bjetMVA+ jetTable+EnergyRingsTable+fatJetTable+subJetTable+saJetTable+saTable)
 
 #MC only producers and tables
 jetMC = cms.Sequence(jetMCTable+genJetTable+patJetPartons+genJetFlavourTable+genJetAK8Table+genJetAK8FlavourAssociation+genJetAK8FlavourTable+genSubJetAK8Table)
