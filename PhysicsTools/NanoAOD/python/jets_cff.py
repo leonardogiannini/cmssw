@@ -49,6 +49,7 @@ bJetVars = cms.EDProducer("JetRegressionVarProducer",
     pvsrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
     src = cms.InputTag("slimmedJets"),    
     svsrc = cms.InputTag("slimmedSecondaryVertices"),
+    gpsrc = cms.InputTag("prunedGenParticles"),
     #musrc = cms.InputTag("slimmedMuons"),
     #elesrc = cms.InputTag("slimmedElectrons")
 )
@@ -71,6 +72,7 @@ slimmedJetsWithUserData = cms.EDProducer("PATJetUserDataEmbedder",
          vtx3dL = cms.InputTag("bJetVars:vtx3dL"),
          vtx3deL = cms.InputTag("bJetVars:vtx3deL"),
          ptD = cms.InputTag("bJetVars:ptD"),
+         genPtwNu = cms.InputTag("bJetVars:genPtwNu"),
          
          ),
      userInts = cms.PSet(
@@ -189,6 +191,7 @@ jetTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
         vtx3deL = Var("userFloat('vtx3deL')", float, doc="max SIP vtx 3d iperr", precision= 10),
         vtxNtrk = Var("userInt('vtxNtrk')", float, doc="max SIP vtx ntracks"),
         ptD = Var("userFloat('ptD')",float,doc="qgl input ptD",precision=6),
+        genPtwNu = Var("userFloat('genPtwNu')",float,doc="regression target",precision=6),
         JEC1 = Var("jecFactor('L1FastJet')",float,doc="jec..",precision=6),
         JEC2 = Var("jecFactor('L2Relative')",float,doc="jec..",precision=6),
         JEC3 = Var("jecFactor('L3Absolute')",float,doc="jec..",precision=6),
