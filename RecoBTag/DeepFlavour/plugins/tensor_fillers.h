@@ -13,7 +13,7 @@ namespace btagbtvdeep {
   // the memory, so it is most performant to get the pointer to the first
   // value and use pointer arithmetic to iterate through the next pointers.
 
-  void jet_tensor_filler(tensorflow::Tensor & tensor,
+inline  void jet_tensor_filler(tensorflow::Tensor & tensor,
                          std::size_t jet_n,
                          const btagbtvdeep::DeepFlavourFeatures & features) {
 
@@ -27,8 +27,6 @@ namespace btagbtvdeep {
     *(++ptr) = features.c_pf_features.size();
     *(++ptr) = features.n_pf_features.size();
     *(++ptr) = features.sv_features.size();
-    *(++ptr) = features.seed_features.size();
-    *(++ptr) = features.seed_features.size()*20;
     *(++ptr) = features.npv;
     // variables from ShallowTagInfo
     const auto & tag_info_features = features.tag_info_features;
@@ -44,7 +42,7 @@ namespace btagbtvdeep {
 
   }
 
-  void c_pf_tensor_filler(tensorflow::Tensor & tensor,
+inline  void c_pf_tensor_filler(tensorflow::Tensor & tensor,
                           std::size_t jet_n,
                           std::size_t c_pf_n,
                           const btagbtvdeep::ChargedCandidateFeatures & c_pf_features) {
@@ -70,7 +68,7 @@ namespace btagbtvdeep {
 
   }
 
-  void n_pf_tensor_filler(tensorflow::Tensor & tensor,
+inline  void n_pf_tensor_filler(tensorflow::Tensor & tensor,
                           std::size_t jet_n,
                           std::size_t n_pf_n,
                           const btagbtvdeep::NeutralCandidateFeatures & n_pf_features) {
@@ -86,7 +84,7 @@ namespace btagbtvdeep {
 
   }
 
-  void sv_tensor_filler(tensorflow::Tensor & tensor,
+inline  void sv_tensor_filler(tensorflow::Tensor & tensor,
                           std::size_t jet_n,
                           std::size_t sv_n,
                           const btagbtvdeep::SecondaryVertexFeatures & sv_features) {
@@ -108,7 +106,7 @@ namespace btagbtvdeep {
 
   }
   
-  void seed_tensor_filler(tensorflow::Tensor & tensor,
+inline  void seed_tensor_filler(tensorflow::Tensor & tensor,
                           std::size_t jet_n,
                           std::size_t seed_n,
                           const btagbtvdeep::SeedingTrackFeatures & seed_features) {
@@ -141,22 +139,19 @@ namespace btagbtvdeep {
   }
   
   
-  void neigbourTracks_tensor_filler(tensorflow::Tensor & tensor,
+inline  void neighbourTracks_tensor_filler(tensorflow::Tensor & tensor,
                           std::size_t jet_n,
                           std::size_t seed_n,
-                          std::size_t neighbour_n,
                           const btagbtvdeep::SeedingTrackFeatures & seed_features) {
 
-    float* ptr = &tensor.tensor<float, 4>()(jet_n, seed_n, int(neighbour_n), 0);    
     
     std::vector<btagbtvdeep::TrackPairFeatures> neighbourTracks_features = seed_features.seed_nearTracks;
     
     for(unsigned int t_i=0; t_i<neighbourTracks_features.size(); t_i++){  
+
+    float* ptr = &tensor.tensor<float, 3>()(jet_n, t_i,  0);    
         
-    if (t_i==0) *ptr = neighbourTracks_features[t_i].nearTracks_pt;
-    else *(++ptr) = neighbourTracks_features[t_i].nearTracks_eta;
-        
-    //*ptr    = neighbourTracks_features[t_i].nearTracks_pt;
+    *(++ptr) = neighbourTracks_features[t_i].nearTracks_pt;
     *(++ptr) = neighbourTracks_features[t_i].nearTracks_eta;
     *(++ptr) = neighbourTracks_features[t_i].nearTracks_phi;
     *(++ptr) = neighbourTracks_features[t_i].nearTracks_mass;
