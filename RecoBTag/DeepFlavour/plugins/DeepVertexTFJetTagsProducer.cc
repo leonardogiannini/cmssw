@@ -134,17 +134,18 @@ DeepVertexTFJetTagsProducer::~DeepVertexTFJetTagsProducer()
 void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
 {
 
-  // pfDeepFlavourJetTags
+  // pfDeepVertexJetTags
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("src", edm::InputTag("pfDeepFlavourTagInfos"));
   desc.add<std::vector<std::string>>("input_names", 
-    { "input_1", "input_2", "input_3" });
+    { "input_1", "input_2", "input_3",  "input_4","input_5","input_6","input_7","input_8","input_9","input_10","input_11","input_12" });
   desc.add<edm::FileInPath>("graph_path",
-    edm::FileInPath("RecoBTag/Combined/data/DeepFlavourV01_GraphDef_PtCut/constant_graph.pb")); ///my file is /afs/cern.ch/user/l/legianni/model_test_TENSORFLOW.pb
+    edm::FileInPath("RecoBTag/DeepFlavour/data/model_test_TENSORFLOW.pb"));
+
   desc.add<std::vector<std::string>>("lp_names",
     { "globals_input_batchnorm/keras_learning_phase" });
   desc.add<std::vector<std::string>>("output_names",
-    { "ID_pred/Softmax", "regression_pred/BiasAdd" }); ///SIGMOID
+    { "output_node0" }); ///SIGMOID
   {
     edm::ParameterSetDescription psd0;
     psd0.add<std::vector<unsigned int>>("probb", {0});
@@ -156,7 +157,7 @@ void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescription
   desc.add<unsigned int>("nThreads", 1);
   desc.add<std::string>("singleThreadPool", "no_threads");
 
-  descriptions.add("pfDeepFlavourJetTags", desc);
+  descriptions.add("pfDeepVertexJetTags", desc);
 }
 
 std::unique_ptr<DeepVertexTFCache> DeepVertexTFJetTagsProducer::initializeGlobalCache(
@@ -211,8 +212,32 @@ void DeepVertexTFJetTagsProducer::produce(edm::Event& iEvent, const edm::EventSe
   
   std::vector<tensorflow::TensorShape> input_sizes {
     {n_batch_jets, 4},         // input_1 - global jet features
+ 
+     {n_batch_jets, 10, 21},  
+   {n_batch_jets,20, 36},      // input_3 - neighbours  
+    {n_batch_jets,20, 36},      // input_4 - neighbours  
+    {n_batch_jets,20, 36},      // input_5 - neighbours  
+    {n_batch_jets,20, 36},      // input_6 - neighbours  
+    {n_batch_jets,20, 36},      // input_7 - neighbours  
+    {n_batch_jets,20, 36},      // input_8 - neighbours  
+    {n_batch_jets,20, 36},      // input_9 - neighbours  
+    {n_batch_jets,20, 36},      // input_10 - neighbours  
+    {n_batch_jets,20, 36},      // input_11 - neighbours  
+    {n_batch_jets,20, 36},      // input_12 - neighbours 
+/* 
+
     {n_batch_jets, 21, 10},     // input_2 - tracks
-    {n_batch_jets, 36, 10, 20}      // input_3 - neighbours  
+    {n_batch_jets, 36, 20},      // input_3 - neighbours  
+    {n_batch_jets, 36, 20},      // input_4 - neighbours  
+    {n_batch_jets, 36, 20},      // input_5 - neighbours  
+    {n_batch_jets, 36, 20},      // input_6 - neighbours  
+    {n_batch_jets, 36, 20},      // input_7 - neighbours  
+    {n_batch_jets, 36, 20},      // input_8 - neighbours  
+    {n_batch_jets, 36, 20},      // input_9 - neighbours  
+    {n_batch_jets, 36, 20},      // input_10 - neighbours  
+    {n_batch_jets, 36, 20},      // input_11 - neighbours  
+    {n_batch_jets, 36, 20},      // input_12 - neighbours  */
+
     
   };
   
@@ -221,7 +246,7 @@ void DeepVertexTFJetTagsProducer::produce(edm::Event& iEvent, const edm::EventSe
   // prevent element copying that would occur via push_back's
   // the default Tensor constructor creates a scalar so this should be fine w.r.t. to memory
   tensorflow::NamedTensorList input_tensors;
-  input_tensors.resize(input_sizes.size() + lp_tensors_.size());
+  input_tensors.resize(input_sizes.size() ); //+ lp_tensors_.size());
   
   // add actual input tensors that hold physics information
   for (std::size_t i=0; i < input_sizes.size(); i++) {
@@ -230,9 +255,9 @@ void DeepVertexTFJetTagsProducer::produce(edm::Event& iEvent, const edm::EventSe
   }
   
   // add learning-phase tensors behind them
-  for (std::size_t i=0; i < lp_tensors_.size(); i++) {
-    input_tensors[input_sizes.size() + i] = tensorflow::NamedTensor(lp_names_[i], lp_tensors_[i]);
-  }
+ // for (std::size_t i=0; i < lp_tensors_.size(); i++) {
+ //   input_tensors[input_sizes.size() + i] = tensorflow::NamedTensor(lp_names_[i], lp_tensors_[i]);
+ // }
   
   
   
@@ -268,17 +293,18 @@ void DeepVertexTFJetTagsProducer::produce(edm::Event& iEvent, const edm::EventSe
         auto max_neighbour_n = std::min(features.seed_features[seed_n].seed_nearTracks.size(),
         (std::size_t) input_sizes.at(kNeighbourTracks).dim_size(1));
         
-        for (std::size_t neighbour_n=0; seed_n < max_neighbour_n; seed_n++) {
-        neigbourTracks_tensor_filler(input_tensors.at(kNeighbourTracks).second,
-                           jet_bn, seed_n, neighbour_n, seed_features);
+ //       for (std::size_t neighbour_n=0; neighbour_n < max_neighbour_n; seed_n++) {
+        neighbourTracks_tensor_filler(input_tensors.at(kNeighbourTracks+seed_n).second,
+                           jet_bn, seed_n,  seed_features);
             
-        }
+  //      }
       }
 
     }////different
 
     // run the session
     std::vector<tensorflow::Tensor> outputs;
+//    std::cout <<"Input size" <<  input_tensors.size() << std::endl;
     tensorflow::run(session_, input_tensors, output_names_, &outputs);
 
     // set output values for flavour probs
