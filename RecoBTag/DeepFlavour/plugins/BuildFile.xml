@@ -6,8 +6,11 @@
   <use   name="RecoBTag/Combined"/>
   <use   name="RecoBTag/DeepFlavour"/>
   <use   name="DataFormats/PatCandidates"/>
-  <use name="CommonTools/UtilAlgos"/>
+  <use   name="CommonTools/UtilAlgos"/>
   <use   name="TrackingTools/IPTools"/>
   <use   name="PhysicsTools/TensorFlow" />
+  <use   name="RecoBTag/TrackProbability"/>
+  <use name="CondFormats/DataRecord"/>
+  <use name="CondFormats/BTauObjects"/>
   <flags   EDM_PLUGIN="1"/>
 </library>

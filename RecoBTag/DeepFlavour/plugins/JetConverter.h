@@ -16,6 +16,8 @@ namespace btagbtvdeep {
         jet_features.eta = jet.eta();
         jet_features.mass = jet.mass();
         jet_features.energy = jet.energy();
+        jet_features.phi = jet.phi();
+        
       }
   }; 
 

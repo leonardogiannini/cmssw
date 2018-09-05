@@ -36,6 +36,21 @@
 
 #include "SeedingTracksConverter.h"
 
+
+//TrackProbability
+
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "RecoBTag/TrackProbability/interface/HistogramProbabilityEstimator.h"
+class HistogramProbabilityEstimator;
+#include <typeinfo>
+#include "CondFormats/BTauObjects/interface/TrackProbabilityCalibration.h"
+#include "CondFormats/DataRecord/interface/BTagTrackProbability2DRcd.h"
+#include "CondFormats/DataRecord/interface/BTagTrackProbability3DRcd.h"
+#include "FWCore/Framework/interface/EventSetupRecord.h"
+#include "FWCore/Framework/interface/EventSetupRecordImplementation.h"
+#include "FWCore/Framework/interface/EventSetupRecordKey.h"
+
 class DeepFlavourTagInfoProducer : public edm::stream::EDProducer<> {
 
   public:
@@ -73,6 +88,15 @@ class DeepFlavourTagInfoProducer : public edm::stream::EDProducer<> {
 
     bool fallback_puppi_weight_;
     bool fallback_vertex_association_;
+    
+      
+    //TrackProbability
+    void checkEventSetup(const edm::EventSetup& iSetup);
+    std::unique_ptr<HistogramProbabilityEstimator> m_probabilityEstimator;
+    bool m_computeProbabilities=1;
+    unsigned long long  m_calibrationCacheId2D; 
+    unsigned long long m_calibrationCacheId3D;
+    
 
 };
 
@@ -139,6 +163,10 @@ void DeepFlavourTagInfoProducer::produce(edm::Event& iEvent, const edm::EventSet
 {
 
   auto output_tag_infos = std::make_unique<DeepFlavourTagInfoCollection>();
+  
+  
+  if (m_computeProbabilities) checkEventSetup(iSetup);
+
 
   edm::Handle<edm::View<reco::Jet>> jets;
   iEvent.getByToken(jet_token_, jets);
@@ -375,8 +403,9 @@ void DeepFlavourTagInfoProducer::produce(edm::Event& iEvent, const edm::EventSet
   
   
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-     std::vector<btagbtvdeep::SeedingTrackFeatures> seedingT_features_vector = features.seed_features;//seedingT_features_vector;
-     btagbtvdeep::SeedingTracksConverter::SeedingTracksToFeatures(seedingT_features_vector, tracks, jet, pv, track_builder);
+     std::vector<btagbtvdeep::SeedingTrackFeatures> & seedingT_features_vector = features.seed_features;//seedingT_features_vector;
+     btagbtvdeep::SeedingTracksConverter::SeedingTracksToFeatures(seedingT_features_vector, tracks, jet, pv, track_builder, m_probabilityEstimator.get(), m_computeProbabilities);
+     std::cout<<"aaa " <<seedingT_features_vector.size()<<std::endl;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
 
@@ -392,6 +421,39 @@ void DeepFlavourTagInfoProducer::produce(edm::Event& iEvent, const edm::EventSet
   iEvent.put(std::move(output_tag_infos));
 
 }
+
+
+void DeepFlavourTagInfoProducer::checkEventSetup(const edm::EventSetup & iSetup) {
+  using namespace edm;
+  using namespace edm::eventsetup;
+
+  std::cout<<"  check setup    "<<std::endl;
+   const EventSetupRecord & re2D= iSetup.get<BTagTrackProbability2DRcd>();
+   const EventSetupRecord & re3D= iSetup.get<BTagTrackProbability3DRcd>();
+   unsigned long long cacheId2D= re2D.cacheIdentifier();
+   unsigned long long cacheId3D= re3D.cacheIdentifier();
+
+   if(cacheId2D!=m_calibrationCacheId2D || cacheId3D!=m_calibrationCacheId3D  )  //Calibration changed
+   {
+       
+        std::cout<<"  check setup  3  "<<std::endl;
+     //iSetup.get<BTagTrackProbabilityRcd>().get(calib);
+     ESHandle<TrackProbabilityCalibration> calib2DHandle;
+     iSetup.get<BTagTrackProbability2DRcd>().get(calib2DHandle);
+     ESHandle<TrackProbabilityCalibration> calib3DHandle;
+     iSetup.get<BTagTrackProbability3DRcd>().get(calib3DHandle);
+
+     const TrackProbabilityCalibration *  ca2D= calib2DHandle.product();
+     const TrackProbabilityCalibration *  ca3D= calib3DHandle.product();
+
+     m_probabilityEstimator.reset(new HistogramProbabilityEstimator(ca3D,ca2D));
+
+   }
+   m_calibrationCacheId3D=cacheId3D;
+   m_calibrationCacheId2D=cacheId2D;
+}
+
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(DeepFlavourTagInfoProducer);
