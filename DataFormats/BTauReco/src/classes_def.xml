@@ -427,8 +427,9 @@
  <class name="edm::Wrapper<std::vector<edm::FwdRef<edm::OwnVector<reco::BaseTagInfo, edm::ClonePolicy<reco::BaseTagInfo>>,reco::BaseTagInfo,edm::refhelper::FindUsingAdvance<edm::OwnVector<reco::BaseTagInfo, edm::ClonePolicy<reco::BaseTagInfo> >,reco::BaseTagInfo> > > >"/>
  <class name="edm::Wrapper<std::vector<edm::Ref<edm::OwnVector<reco::BaseTagInfo, edm::ClonePolicy<reco::BaseTagInfo>>,reco::BaseTagInfo,edm::refhelper::FindUsingAdvance<edm::OwnVector<reco::BaseTagInfo, edm::ClonePolicy<reco::BaseTagInfo> >,reco::BaseTagInfo> > > >"/>
 
-  <class name="btagbtvdeep::JetFeatures" ClassVersion="3">
+  <class name="btagbtvdeep::JetFeatures" ClassVersion="4">
     <version ClassVersion="3" checksum="386672900"/>
+    <version ClassVersion="4" checksum="2930551119"/>
   </class>
   <class name="btagbtvdeep::SecondaryVertexFeatures" ClassVersion="3">
     <version ClassVersion="3" checksum="3610780843"/>
