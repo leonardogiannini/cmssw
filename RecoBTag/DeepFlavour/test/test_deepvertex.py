@@ -4,7 +4,7 @@ process = cms.Process("PATtest")
 
 process.source = cms.Source("PoolSource",
 #root://cms-xrd-global.cern.ch//store/relval/CMSSW_10_1_0_pre3/RelValTTbar_13/MINIAODSIM/101X_mcRun2_asymptotic_v2_FastSim-v1/10000/823C8EE0-2C2A-E811-B6BC-003048FFD734.root
-    fileNames = cms.untracked.vstring('file:823C8EE0-2C2A-E811-B6BC-003048FFD734.root')
+    fileNames = cms.untracked.vstring('file:0055C65C-E558-E811-AB0E-008CFA582BF4.root')
 )
 process.HFRecalParameterBlock = cms.PSet(
     HFdepthOneParameterA = cms.vdouble(
@@ -142,7 +142,7 @@ process.ghostTrackCommon = cms.PSet(
 )
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(10000)
 )
 
 process.options = cms.untracked.PSet(
@@ -927,7 +927,7 @@ process.pfDeepCSVTagInfos = cms.EDProducer("DeepNNTagInfoProducer",
 )
 
 
-process.pfDeepFlavourJetTags = cms.EDProducer("DeepVertexTFJetTagsProducer",
+process.pfDeepVertexJetTags = cms.EDProducer("DeepVertexTFJetTagsProducer",
     src = cms.InputTag("pfDeepFlavourTagInfos"),
   input_names = cms.vstring(
     'input_1',
@@ -943,7 +943,7 @@ process.pfDeepFlavourJetTags = cms.EDProducer("DeepVertexTFJetTagsProducer",
     'input_11',
     'input_12'
   ),
-  graph_path = cms.FileInPath('RecoBTag/DeepFlavour/data/model_test_TENSORFLOW.pb'),
+  graph_path = cms.FileInPath('RecoBTag/DeepFlavour/data/oldsetup_epoch3.pb'),
   lp_names = cms.vstring('globals_input_batchnorm/keras_learning_phase'),
   output_names = cms.vstring(
     'output_node0'
@@ -1171,7 +1171,7 @@ process.updatedPatJetsTransientCorrected = cms.EDProducer("PATJetUpdater",
     addJetCorrFactors = cms.bool(True),
     addTagInfos = cms.bool(False),
     discriminatorSources = cms.VInputTag(
-        cms.InputTag("pfDeepFlavourJetTags","probb")
+        cms.InputTag("pfDeepVertexJetTags","probb")
     ),
     jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsTransientCorrected")),
     jetSource = cms.InputTag("updatedPatJets"),
@@ -1205,7 +1205,7 @@ process.selectedUpdatedPatJets = cms.EDFilter("PATJetSelector",
 
 
 process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('test_deep_flavour_MINIAODSIM.root'),
+    fileName = cms.untracked.string('test_deep_flavour_MINIAODSIM_.root'),
     outputCommands = cms.untracked.vstring(
         'drop *', 
         'drop *', 
@@ -1293,6 +1293,7 @@ process.out = cms.OutputModule("PoolOutputModule",
         'keep *_pfDeepCSVTagInfos*_*_*', 
         'keep *_pfDeepFlavourTagInfos*_*_*', 
         'keep *_pfDeepFlavourJetTags*_*_*', 
+        'keep *_pfDeepVertexJetTags*_*_*', 
         'keep *_updatedPatJets*_*_*'
     )
 )
@@ -5930,7 +5931,7 @@ process.es_hardcode = cms.ESSource("HcalHardcodeCalibrations",
 
 process.prefer("es_hardcode")
 
-process.patAlgosToolsTask = cms.Task(process.patJetCorrFactors, process.patJetCorrFactorsTransientCorrected, process.pfCombinedSecondaryVertexV2BJetTags, process.pfDeepCSVJetTags, process.pfDeepCSVTagInfos, process.pfDeepFlavourJetTags, process.pfDeepFlavourTagInfos, process.pfImpactParameterTagInfos, process.pfInclusiveSecondaryVertexFinderTagInfos, process.pfSecondaryVertexTagInfos, process.selectedUpdatedPatJets, process.updatedPatJets, process.updatedPatJetsTransientCorrected)
+process.patAlgosToolsTask = cms.Task(process.patJetCorrFactors, process.patJetCorrFactorsTransientCorrected, process.pfCombinedSecondaryVertexV2BJetTags, process.pfDeepCSVJetTags, process.pfDeepCSVTagInfos, process.pfDeepVertexJetTags, process.pfDeepFlavourTagInfos, process.pfImpactParameterTagInfos, process.pfInclusiveSecondaryVertexFinderTagInfos, process.pfSecondaryVertexTagInfos, process.selectedUpdatedPatJets, process.updatedPatJets, process.updatedPatJetsTransientCorrected)
 
 
 process.outpath = cms.EndPath(process.out, process.patAlgosToolsTask)
