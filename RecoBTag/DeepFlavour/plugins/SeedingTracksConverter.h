@@ -20,6 +20,8 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "RecoVertex/VertexTools/interface/VertexDistance3D.h"
 
+#include "RecoBTag/TrackProbability/interface/HistogramProbabilityEstimator.h"
+class HistogramProbabilityEstimator;
 
 namespace btagbtvdeep {
 
@@ -32,10 +34,13 @@ namespace btagbtvdeep {
                                             edm::Handle<edm::View<pat::PackedCandidate> > tracks,
                                             const reco::Jet & jet,
                                             const reco::Vertex & pv,                                            
-                                            edm::ESHandle<TransientTrackBuilder> & track_builder
+                                            edm::ESHandle<TransientTrackBuilder> & track_builder,
+                                            
+                                            HistogramProbabilityEstimator* m_probabilityEstimator,
+                                            bool m_computeProbabilities
+                                            
                                             ) {
-          
-          
+            
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             GlobalVector jetdirection(jet.px(),jet.py(),jet.pz());
             GlobalPoint pvp(pv.x(),pv.y(),pv.z());
@@ -89,7 +94,7 @@ namespace btagbtvdeep {
                 
                 
                 btagbtvdeep::SeedingTrackInfoBuilder seedInfo;
-                seedInfo.buildSeedingTrackInfo(&(*it), pv, jetdirection, masses[it-selectedTracks.begin()]);
+                seedInfo.buildSeedingTrackInfo(&(*it), pv, jet /*jetdirection*/, masses[it-selectedTracks.begin()], m_probabilityEstimator, m_computeProbabilities);
                 
                 
                 for(std::vector<reco::TransientTrack>::const_iterator tt = selectedTracks.begin();tt!=selectedTracks.end(); ++tt )   {
@@ -111,18 +116,61 @@ namespace btagbtvdeep {
                                 
                     if(max_counter>=20) break;
                     btagbtvdeep::TrackPairFeatures tp_features;
-                    tp_features.nearTracks_pt=im->second.get_track_pt();
+                    
+                    
+//                     tp_features.nearTracks_pt=im->second.get_track_pt();
+//                     tp_features.nearTracks_eta=im->second.get_track_eta();
+//                     tp_features.nearTracks_phi=im->second.get_track_phi();
+//                     tp_features.nearTracks_mass=im->second.get_track_candMass();
+//                     tp_features.nearTracks_dz=im->second.get_track_dz();
+//                     tp_features.nearTracks_dxy=im->second.get_track_dxy();
+//                     tp_features.nearTracks_3D_ip=im->second.get_track_ip3d();
+//                     tp_features.nearTracks_3D_sip=im->second.get_track_ip3dSig();
+//                     tp_features.nearTracks_2D_ip=im->second.get_track_ip2d();
+//                     tp_features.nearTracks_2D_sip=im->second.get_track_ip2dSig();
+//                     tp_features.nearTracks_PCAdist=im->second.get_pca_distance();
+//                     tp_features.nearTracks_PCAdsig=im->second.get_pca_significance();     
+//                     tp_features.nearTracks_PCAonSeed_x=im->second.get_pcaSeed_x();
+//                     tp_features.nearTracks_PCAonSeed_y=im->second.get_pcaSeed_y();
+//                     tp_features.nearTracks_PCAonSeed_z=im->second.get_pcaSeed_z();      
+//                     tp_features.nearTracks_PCAonSeed_xerr=im->second.get_pcaSeed_xerr();
+//                     tp_features.nearTracks_PCAonSeed_yerr=im->second.get_pcaSeed_yerr();
+//                     tp_features.nearTracks_PCAonSeed_zerr=im->second.get_pcaSeed_zerr();      
+//                     tp_features.nearTracks_PCAonTrack_x=im->second.get_pcaTrack_x();
+//                     tp_features.nearTracks_PCAonTrack_y=im->second.get_pcaTrack_x();
+//                     tp_features.nearTracks_PCAonTrack_z=im->second.get_pcaTrack_x();      
+//                     tp_features.nearTracks_PCAonTrack_xerr=im->second.get_pcaTrack_xerr();
+//                     tp_features.nearTracks_PCAonTrack_yerr=im->second.get_pcaTrack_yerr();
+//                     tp_features.nearTracks_PCAonTrack_zerr=im->second.get_pcaTrack_zerr(); 
+//                     tp_features.nearTracks_dotprodTrack=im->second.get_dotprodTrack();
+//                     tp_features.nearTracks_dotprodSeed=im->second.get_dotprodSeed();
+//                     tp_features.nearTracks_dotprodTrackSeed2D=im->second.get_dotprodTrackSeed2D();
+//                     tp_features.nearTracks_dotprodTrackSeed3D=im->second.get_dotprodTrackSeed3D();
+//                     tp_features.nearTracks_dotprodTrackSeedVectors2D=im->second.get_dotprodTrackSeed2DV();
+//                     tp_features.nearTracks_dotprodTrackSeedVectors3D=im->second.get_dotprodTrackSeed3DV();      
+//                     tp_features.nearTracks_PCAonSeed_pvd=im->second.get_pcaSeed_dist();
+//                     tp_features.nearTracks_PCAonTrack_pvd=im->second.get_pcaTrack_dist();
+//                     tp_features.nearTracks_PCAjetAxis_dist=im->second.get_pca_jetAxis_dist();
+//                     tp_features.nearTracks_PCAjetMomenta_dotprod=im->second.get_pca_jetAxis_dotprod();
+//                     tp_features.nearTracks_PCAjetDirs_DEta=im->second.get_pca_jetAxis_dEta();
+//                     tp_features.nearTracks_PCAjetDirs_DPhi=im->second.get_pca_jetAxis_dPhi();
+                    
+                    
+                    
+                    int N=0;
+                    
+                    tp_features.nearTracks_pt=(im->second.get_track_pt()==0) ? 0: 1.0/im->second.get_track_pt();  //im->second.get_track_pt();
                     tp_features.nearTracks_eta=im->second.get_track_eta();
                     tp_features.nearTracks_phi=im->second.get_track_phi();
                     tp_features.nearTracks_mass=im->second.get_track_candMass();
-                    tp_features.nearTracks_dz=im->second.get_track_dz();
-                    tp_features.nearTracks_dxy=im->second.get_track_dxy();
-                    tp_features.nearTracks_3D_ip=im->second.get_track_ip3d();
-                    tp_features.nearTracks_3D_sip=im->second.get_track_ip3dSig();
-                    tp_features.nearTracks_2D_ip=im->second.get_track_ip2d();
-                    tp_features.nearTracks_2D_sip=im->second.get_track_ip2dSig();
-                    tp_features.nearTracks_PCAdist=im->second.get_pca_distance();
-                    tp_features.nearTracks_PCAdsig=im->second.get_pca_significance();     
+                    tp_features.nearTracks_dz=(N+log(fabs(im->second.get_track_dz())))*((im->second.get_track_dz() < 0) ? -1 : (im->second.get_track_dz() > 0));  //im->second.get_track_dz();
+                    tp_features.nearTracks_dxy=(N+log(fabs(im->second.get_track_dxy())))*((im->second.get_track_dxy() < 0) ? -1 : (im->second.get_track_dxy() > 0));  //im->second.get_track_dxy();
+                    tp_features.nearTracks_3D_ip=log(im->second.get_track_ip3d());
+                    tp_features.nearTracks_3D_sip=log(im->second.get_track_ip3dSig());
+                    tp_features.nearTracks_2D_ip=log(im->second.get_track_ip2d());
+                    tp_features.nearTracks_2D_sip=log(im->second.get_track_ip2dSig());
+                    tp_features.nearTracks_PCAdist=log(im->second.get_pca_distance());
+                    tp_features.nearTracks_PCAdsig=log(im->second.get_pca_significance());     
                     tp_features.nearTracks_PCAonSeed_x=im->second.get_pcaSeed_x();
                     tp_features.nearTracks_PCAonSeed_y=im->second.get_pcaSeed_y();
                     tp_features.nearTracks_PCAonSeed_z=im->second.get_pcaSeed_z();      
@@ -130,8 +178,8 @@ namespace btagbtvdeep {
                     tp_features.nearTracks_PCAonSeed_yerr=im->second.get_pcaSeed_yerr();
                     tp_features.nearTracks_PCAonSeed_zerr=im->second.get_pcaSeed_zerr();      
                     tp_features.nearTracks_PCAonTrack_x=im->second.get_pcaTrack_x();
-                    tp_features.nearTracks_PCAonTrack_y=im->second.get_pcaTrack_x();
-                    tp_features.nearTracks_PCAonTrack_z=im->second.get_pcaTrack_x();      
+                    tp_features.nearTracks_PCAonTrack_y=im->second.get_pcaTrack_y();
+                    tp_features.nearTracks_PCAonTrack_z=im->second.get_pcaTrack_z();      
                     tp_features.nearTracks_PCAonTrack_xerr=im->second.get_pcaTrack_xerr();
                     tp_features.nearTracks_PCAonTrack_yerr=im->second.get_pcaTrack_yerr();
                     tp_features.nearTracks_PCAonTrack_zerr=im->second.get_pcaTrack_zerr(); 
@@ -141,12 +189,13 @@ namespace btagbtvdeep {
                     tp_features.nearTracks_dotprodTrackSeed3D=im->second.get_dotprodTrackSeed3D();
                     tp_features.nearTracks_dotprodTrackSeedVectors2D=im->second.get_dotprodTrackSeed2DV();
                     tp_features.nearTracks_dotprodTrackSeedVectors3D=im->second.get_dotprodTrackSeed3DV();      
-                    tp_features.nearTracks_PCAonSeed_pvd=im->second.get_pcaSeed_dist();
-                    tp_features.nearTracks_PCAonTrack_pvd=im->second.get_pcaTrack_dist();
-                    tp_features.nearTracks_PCAjetAxis_dist=im->second.get_pca_jetAxis_dist();
+                    tp_features.nearTracks_PCAonSeed_pvd=log(im->second.get_pcaSeed_dist());
+                    tp_features.nearTracks_PCAonTrack_pvd=log(im->second.get_pcaTrack_dist());
+                    tp_features.nearTracks_PCAjetAxis_dist=log(im->second.get_pca_jetAxis_dist());
                     tp_features.nearTracks_PCAjetMomenta_dotprod=im->second.get_pca_jetAxis_dotprod();
-                    tp_features.nearTracks_PCAjetDirs_DEta=im->second.get_pca_jetAxis_dEta();
-                    tp_features.nearTracks_PCAjetDirs_DPhi=im->second.get_pca_jetAxis_dPhi();
+                    tp_features.nearTracks_PCAjetDirs_DEta=log(im->second.get_pca_jetAxis_dEta());
+                    tp_features.nearTracks_PCAjetDirs_DPhi=im->second.get_pca_jetAxis_dPhi();               
+                    
                     
                     max_counter=max_counter+1;
                     tp_features_vector.push_back(tp_features);
@@ -166,31 +215,61 @@ namespace btagbtvdeep {
                 if(max_counter_seed>=10) break;
                 
                 btagbtvdeep::SeedingTrackFeatures seed_features;
+                
+//                 seed_features.seed_nearTracks=im->second.second;
+//                 seed_features.seed_pt=im->second.first.get_pt();
+//                 seed_features.seed_eta=im->second.first.get_eta();
+//                 seed_features.seed_phi=im->second.first.get_phi();
+//                 seed_features.seed_mass=im->second.first.get_mass();    
+//                 seed_features.seed_dz=im->second.first.get_dz();
+//                 seed_features.seed_dxy=im->second.first.get_dxy();
+//                 seed_features.seed_3D_ip=im->second.first.get_ip3d();
+//                 seed_features.seed_3D_sip=im->second.first.get_sip3d();
+//                 seed_features.seed_2D_ip=im->second.first.get_ip2d();
+//                 seed_features.seed_2D_sip=im->second.first.get_sip2d();    
+//                 seed_features.seed_3D_signedIp=im->second.first.get_ip3d_Signed();
+//                 seed_features.seed_3D_signedSip=im->second.first.get_sip3d_Signed();
+//                 seed_features.seed_2D_signedIp=im->second.first.get_ip2d_Signed();
+//                 seed_features.seed_2D_signedSip=im->second.first.get_sip2d_Signed();  
+//                 seed_features.seed_3D_TrackProbability=im->second.first.get_trackProbability3D();
+//                 seed_features.seed_2D_TrackProbability=im->second.first.get_trackProbability2D();
+//                 seed_features.seed_chi2reduced=im->second.first.get_chi2reduced();
+//                 seed_features.seed_nPixelHits=im->second.first.get_nPixelHits();
+//                 seed_features.seed_nHits=im->second.first.get_nHits();
+//                 seed_features.seed_jetAxisDistance=im->second.first.get_jetAxisDistance();
+//                 seed_features.seed_jetAxisDlength=im->second.first.get_jetAxisDlength();
+              
+                
+                int N=0;
+                
                 seed_features.seed_nearTracks=im->second.second;
-                seed_features.seed_pt=im->second.first.get_pt();
+                seed_features.seed_pt=(im->second.first.get_pt()==0) ? 0: 1.0/im->second.first.get_pt();
                 seed_features.seed_eta=im->second.first.get_eta();
                 seed_features.seed_phi=im->second.first.get_phi();
-                seed_features.seed_mass=im->second.first.get_mass();    
-                seed_features.seed_dz=im->second.first.get_dz();
-                seed_features.seed_dxy=im->second.first.get_dxy();
-                seed_features.seed_3D_ip=im->second.first.get_ip3d();
-                seed_features.seed_3D_sip=im->second.first.get_sip3d();
-                seed_features.seed_2D_ip=im->second.first.get_ip2d();
-                seed_features.seed_2D_sip=im->second.first.get_sip2d();    
-                seed_features.seed_3D_signedIp=im->second.first.get_ip3d_Signed();
-                seed_features.seed_3D_signedSip=im->second.first.get_sip3d_Signed();
-                seed_features.seed_2D_signedIp=im->second.first.get_ip2d_Signed();
-                seed_features.seed_2D_signedSip=im->second.first.get_sip2d_Signed();  
+                seed_features.seed_mass=im->second.first.get_mass();                
+                seed_features.seed_dz=(N+log(fabs(im->second.first.get_dz())))*((im->second.first.get_dz() < 0) ? -1 : (im->second.first.get_dz() > 0));
+                seed_features.seed_dxy=(N+log(fabs(im->second.first.get_dxy())))*((im->second.first.get_dxy() < 0) ? -1 : (im->second.first.get_dxy() > 0));
+                seed_features.seed_3D_ip=log(im->second.first.get_ip3d());
+                seed_features.seed_3D_sip=log(im->second.first.get_sip3d());
+                seed_features.seed_2D_ip=log(im->second.first.get_ip2d());
+                seed_features.seed_2D_sip=log(im->second.first.get_sip2d()); 
+                seed_features.seed_3D_signedIp=(N+log(fabs(im->second.first.get_ip3d_Signed())))*((im->second.first.get_ip3d_Signed() < 0) ? -1 : (im->second.first.get_ip3d_Signed() > 0));
+                seed_features.seed_3D_signedSip=(N+log(fabs(im->second.first.get_sip3d_Signed())))*((im->second.first.get_sip3d_Signed() < 0) ? -1 : (im->second.first.get_sip3d_Signed() > 0));
+                seed_features.seed_2D_signedIp=(N+log(fabs(im->second.first.get_ip2d_Signed())))*((im->second.first.get_ip2d_Signed() < 0) ? -1 : (im->second.first.get_ip2d_Signed() > 0));
+                seed_features.seed_2D_signedSip=(N+log(fabs(im->second.first.get_sip2d_Signed())))*((im->second.first.get_sip2d_Signed() < 0) ? -1 : (im->second.first.get_sip2d_Signed() > 0));
                 seed_features.seed_3D_TrackProbability=im->second.first.get_trackProbability3D();
                 seed_features.seed_2D_TrackProbability=im->second.first.get_trackProbability2D();
-                seed_features.seed_chi2reduced=im->second.first.get_chi2reduced();
+                seed_features.seed_chi2reduced=(im->second.first.get_chi2reduced()<=0) ? 0: log(im->second.first.get_chi2reduced());//log(im->second.first.get_chi2reduced());
                 seed_features.seed_nPixelHits=im->second.first.get_nPixelHits();
                 seed_features.seed_nHits=im->second.first.get_nHits();
-                seed_features.seed_jetAxisDistance=im->second.first.get_jetAxisDistance();
-                seed_features.seed_jetAxisDlength=im->second.first.get_jetAxisDlength();
+                seed_features.seed_jetAxisDistance=log(im->second.first.get_jetAxisDistance());
+                seed_features.seed_jetAxisDlength=log(im->second.first.get_jetAxisDlength());
+                
         
                 max_counter_seed=max_counter_seed+1;
                 seedingT_features_vector.push_back(seed_features);
+                
+                std::cout<<"at end of filling"<<seedingT_features_vector.size()<<std::endl;
                 
                 }
                 
@@ -201,8 +280,11 @@ namespace btagbtvdeep {
                         btagbtvdeep::SeedingTrackFeatures seed_features_zeropad;
                         seed_features_zeropad.seed_nearTracks=tp_features_zeropad;
                         seedingT_features_vector.push_back(seed_features_zeropad);
+                        
                     }
                 }
+                
+                std::cout<<"at end of refilling"<<seedingT_features_vector.size()<<std::endl;
         
 
 

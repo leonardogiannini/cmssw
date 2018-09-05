@@ -6,6 +6,9 @@
 #include "TrackingTools/IPTools/interface/IPTools.h"
 #include "TrackingTools/PatternTools/interface/TwoTrackMinimumDistance.h"
 
+#include "RecoBTag/TrackProbability/interface/HistogramProbabilityEstimator.h"
+class HistogramProbabilityEstimator;
+
 
 namespace btagbtvdeep{
 
@@ -43,11 +46,13 @@ public:
 
 }
 
-    void buildSeedingTrackInfo(const reco::TransientTrack * it , const reco::Vertex & pv,  GlobalVector jetdirection, float mass){
+    void buildSeedingTrackInfo(const reco::TransientTrack * it , const reco::Vertex & pv,  const reco::Jet & jet,/*GlobalVector jetdirection,*/ float mass, 
+                              HistogramProbabilityEstimator* m_probabilityEstimator, bool m_computeProbabilities=0){
         
         GlobalPoint pvp(pv.x(),pv.y(),pv.z());
+        GlobalVector jetdirection(jet.px(),jet.py(),jet.pz());
         
-        pt_=it->track().eta();
+        pt_=it->track().pt();
         eta_=it->track().eta();
         phi_=it->track().phi();
         dz_=it->track().dz(pv.position());
@@ -83,7 +88,31 @@ public:
         
         trackProbability3D_=0.5;
         trackProbability2D_=0.5;
+        
+        if (m_computeProbabilities) {
+            
+            //probability with 3D ip
+            std::cout<<"compute probability"<<std::endl;
+                        
+            std::pair<bool,double> probability = m_probabilityEstimator->probability(0,0,ip.second.significance(),it->track(),jet,pv);
+            double prob3D=(probability.first ? probability.second : -1.);
+            std::cout<<prob3D<<std::endl;
+            
+            //probability with 2D ip                  
+            probability = m_probabilityEstimator->probability(0,1,ip2d.second.significance(),it->track(),jet,pv);
+            double prob2D=(probability.first ? probability.second : -1.);
+            std::cout<<prob2D<<std::endl;
+                    
+            trackProbability3D_=prob3D;
+            trackProbability2D_=prob2D;  
 
+            std::cout<<"my probability "<<prob3D<<" my probability "<<prob2D<<" jet "<<jet.pt()<<jet.eta()<<jet.phi()<<jet.mass()<<std::endl;
+            
+            
+        } 
+        
+        if (!(trackProbability3D_==trackProbability3D_)) trackProbability3D_=0.5;
+        if (!(trackProbability2D_==trackProbability2D_)) trackProbability2D_=0.5;
 
 
     }

@@ -147,8 +147,8 @@ public:
             track_ip3dSig_=t_ip.second.significance();
 
             dotprodTrackSeed2D_=trackDir2D.unit().dot(seedDir2D.unit());
-            dotprodTrackSeed2DV_=it->impactPointState().globalDirection().unit().dot(tt->impactPointState().globalDirection().unit());
-            dotprodTrackSeed3D_=trackPCADir2D.unit().dot(seedPCADir2D.unit());
+            dotprodTrackSeed3D_=it->impactPointState().globalDirection().unit().dot(tt->impactPointState().globalDirection().unit());
+            dotprodTrackSeed2DV_=trackPCADir2D.unit().dot(seedPCADir2D.unit());
             dotprodTrackSeed3DV_=(dist.points().second-pvp).unit().dot((dist.points().first-pvp).unit());
 
             pca_jetAxis_dist_=jetLine.distance(cp).mag();
