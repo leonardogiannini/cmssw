@@ -11,6 +11,7 @@ class JetFeatures {
     float eta;
     float mass;
     float energy;
+    float phi;
 
 };
 

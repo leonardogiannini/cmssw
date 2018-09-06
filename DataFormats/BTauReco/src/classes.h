@@ -54,6 +54,8 @@
 #include "DataFormats/BTauReco/interface/ChargedCandidateFeatures.h"
 #include "DataFormats/BTauReco/interface/DeepFlavourFeatures.h"
 #include "DataFormats/BTauReco/interface/DeepFlavourTagInfo.h"
+#include "DataFormats/BTauReco/interface/TrackPairFeatures.h"
+#include "DataFormats/BTauReco/interface/SeedingTrackFeatures.h"
 #include "DataFormats/BTauReco/interface/DeepDoubleBFeatures.h"
 #include "DataFormats/BTauReco/interface/DeepDoubleBTagInfo.h"
 
@@ -408,6 +410,9 @@ namespace DataFormats_BTauReco {
     btagbtvdeep::NeutralCandidateFeatures neutral_candidate_features;
     btagbtvdeep::ChargedCandidateFeatures charged_candidate_features;
     btagbtvdeep::DeepFlavourFeatures deep_flavour_features;
+    btagbtvdeep::SeedingTrackFeatures seeding_track_features;
+    btagbtvdeep::TrackPairFeatures track_pairs_features;
+
 
     reco::DeepFlavourTagInfo deep_flavour_tag_info;
     reco::DeepFlavourTagInfoCollection deep_flavour_tag_info_collection;
