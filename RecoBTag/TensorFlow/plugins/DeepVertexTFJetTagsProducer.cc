@@ -141,7 +141,7 @@ void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescription
   desc.add<std::vector<std::string>>("input_names", 
     { "input_1", "input_2", "input_3",  "input_4","input_5","input_6","input_7","input_8","input_9","input_10","input_11","input_12" });
   desc.add<edm::FileInPath>("graph_path",
-    edm::FileInPath("RecoBTag/DeepFlavour/data/model_4CAT_good.pb"));
+    edm::FileInPath("RecoBTag/TensorFlow/data/oldsetup_epoch_cons.pb"));
 
   desc.add<std::vector<std::string>>("lp_names",
     { "globals_input_batchnorm/keras_learning_phase" });
