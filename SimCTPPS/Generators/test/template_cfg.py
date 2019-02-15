@@ -27,6 +27,7 @@ process.load("SimCTPPS.Generators.PPXZGenerator_cfi")
 process.generator.verbosity = 0
 process.generator.m_X = $mass
 process.generator.m_XZ_min = $mass + 100
+process.generator.m_X_pr1 = $mass - 100
 process.generator.decayX = True
 
 # random seeds
