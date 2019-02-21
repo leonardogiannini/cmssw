@@ -134,6 +134,19 @@ process.ppxzGeneratorValidation.referenceRPDecId_45 = cms.uint32(23)
 process.ppxzGeneratorValidation.referenceRPDecId_56 = cms.uint32(123)
 process.ppxzGeneratorValidation.outputFile = "ppxzGeneratorValidation.root"
 
+# acceptance plotter
+process.ctppsAcceptancePlotter = cms.EDAnalyzer("CTPPSAcceptancePlotter",
+  tagHepMC = cms.InputTag("generator", "unsmeared"),
+  tagTracks = cms.InputTag("ctppsLocalTrackLiteProducer"),
+
+  rpId_45_F = cms.uint32(23),
+  rpId_45_N = cms.uint32(3),
+  rpId_56_N = cms.uint32(103),
+  rpId_56_F = cms.uint32(123),
+
+  outputFile = cms.string("acceptance.root")
+)
+
 # reconstruction validation
 process.load("Validation.CTPPS.ctppsProtonReconstructionValidator_cfi")
 process.ctppsProtonReconstructionValidator.tagHepMCBeforeSmearing = cms.InputTag("generator", "unsmeared")
@@ -155,6 +168,7 @@ process.p = cms.Path(
     * process.ctppsProtonReconstructionOFDB
 
     * process.ctppsTrackDistributionPlotter
+    * process.ctppsAcceptancePlotter
     * process.ppxzGeneratorValidation
     * process.ctppsProtonReconstructionValidator
 )
@@ -162,7 +176,7 @@ process.p = cms.Path(
 
 # output configuration
 process.output = cms.OutputModule("PoolOutputModule",
-  fileName = cms.untracked.string("file:./ntuple.root"),
+  fileName = cms.untracked.string("root://eostotem.cern.ch//$eos_dir/ntuple.root"),
   splitLevel = cms.untracked.int32(0),
   eventAutoFlushCompressedSize=cms.untracked.int32(-900),
   compressionAlgorithm=cms.untracked.string("LZMA"),
@@ -175,4 +189,5 @@ process.output = cms.OutputModule("PoolOutputModule",
   )
 )
 
-process.outpath = cms.EndPath(process.output)
+if ($save_ntuples):
+  process.outpath = cms.EndPath(process.output)

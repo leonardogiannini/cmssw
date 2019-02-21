@@ -15,23 +15,29 @@ xangles=(
 	150
 )
 
-#n_events=400000
-n_events=100000
+n_events=400000
+#n_events=100000
 #n_events=4000
+
+save_ntuples="False"
 
 #----------------------------------------------------------------------------------------------------
 
 function RunOne()
 {
 	dir="m_X_$mass/xangle_$xangle"
+	eos_dir="/eos/totem/user/j/jkaspar/PPXZ/m_X_$mass/xangle_$xangle"
 	echo $dir
 
 	mkdir -p "$dir"
+	eos mkdir -p "$eos_dir"
 
 	cat "template_cfg.py"|sed "\
 			s|\$mass|$mass|g;\
 			s|\$xangle|$xangle|g;\
 			s|\$n_events|$n_events|g;\
+			s|\$eos_dir|$eos_dir|g;\
+			s|\$save_ntuples|$save_ntuples|g;\
 		" > "$dir/cfg.py"
 
 	cd "$dir"
