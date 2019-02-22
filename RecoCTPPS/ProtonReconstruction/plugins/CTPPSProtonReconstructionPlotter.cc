@@ -308,6 +308,7 @@ class CTPPSProtonReconstructionPlotter : public edm::one::EDAnalyzer<>
 
     struct ArmCorrelationPlots
     {
+      TH2D *h2_xi_si_F_vs_xi_si_N = NULL;
       TH1D *h_xi_si_diffNF = NULL;
       TProfile *p_xi_si_diffNF_vs_xi_mu = NULL;
 
@@ -316,6 +317,7 @@ class CTPPSProtonReconstructionPlotter : public edm::one::EDAnalyzer<>
 
       void Init()
       {
+        h2_xi_si_F_vs_xi_si_N = new TH2D("", ";#xi_{sN};#xi_{sF}", 100, 0., 0.25, 100, 0., 0.25);
         h_xi_si_diffNF = new TH1D("", ";#xi_{sF} - #xi_{sN}", 100, -0.02, +0.02);
         p_xi_si_diffNF_vs_xi_mu = new TProfile("", ";#xi_{m};#xi_{sF} - #xi_{sN}", 100, 0., 0.25);
 
@@ -333,6 +335,7 @@ class CTPPSProtonReconstructionPlotter : public edm::one::EDAnalyzer<>
           const double th_y_s_N = p_s_N.direction().y() / p_s_N.direction().mag();
           const double th_y_s_F = p_s_F.direction().y() / p_s_F.direction().mag();
 
+          h2_xi_si_F_vs_xi_si_N->Fill(p_s_N.xi(), p_s_F.xi());
           h_xi_si_diffNF->Fill(p_s_F.xi() - p_s_N.xi());
           p_xi_si_diffNF_vs_xi_mu->Fill(p_m.xi(), p_s_F.xi() - p_s_N.xi());
 
@@ -343,6 +346,7 @@ class CTPPSProtonReconstructionPlotter : public edm::one::EDAnalyzer<>
 
       void Write() const
       {
+        h2_xi_si_F_vs_xi_si_N->Write("h2_xi_si_F_vs_xi_si_N");
         h_xi_si_diffNF->Write("h_xi_si_diffNF");
         p_xi_si_diffNF_vs_xi_mu->Write("p_xi_si_diffNF_vs_xi_mu");
 
