@@ -23,17 +23,18 @@ process.maxEvents = cms.untracked.PSet(
   input = cms.untracked.int32(-1)
 )
 
+# provide LHCInfo
+process.load("RecoCTPPS.ProtonReconstruction.year_2017_OF.ctppsLHCInfoESSourceJSON_cfi")
+
 # proton reconstruction
 from RecoCTPPS.ProtonReconstruction.year_2017_OF.ctppsProtonReconstructionOF_cfi import *
-process.ctppsProtonReconstructionOF = ctppsProtonReconstructionOF
-process.ctppsProtonReconstructionOF.alignmentFiles = cms.vstring("RecoCTPPS/ProtonReconstruction/data/alignment/2017_postTS2/collect_alignments_$alignment.out")
-
-UseCrossingAngle($xangle, process.source)
+process.ctppsProtonReconstructionOFDB = ctppsProtonReconstructionOFDB
+process.ctppsProtonReconstructionOFDB.alignmentFiles = cms.vstring("RecoCTPPS/ProtonReconstruction/data/alignment/2017_postTS2/collect_alignments_$alignment.out")
 
 # reconstruction plotter
 process.ctppsProtonReconstructionPlotter = cms.EDAnalyzer("CTPPSProtonReconstructionPlotter",
     tagTracks = cms.InputTag("ctppsLocalTrackLiteProducer"),
-    tagRecoProtons = cms.InputTag("ctppsProtonReconstructionOF"),
+    tagRecoProtons = cms.InputTag("ctppsProtonReconstructionOFDB"),
 
     rpId_45_F = cms.uint32(23),
     rpId_45_N = cms.uint32(3),
@@ -45,6 +46,6 @@ process.ctppsProtonReconstructionPlotter = cms.EDAnalyzer("CTPPSProtonReconstruc
 )
 
 process.p = cms.Path(
-    process.ctppsProtonReconstructionOF
+    process.ctppsProtonReconstructionOFDB
     * process.ctppsProtonReconstructionPlotter
 )
