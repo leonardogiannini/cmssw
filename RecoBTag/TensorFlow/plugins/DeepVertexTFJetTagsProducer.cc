@@ -141,7 +141,7 @@ void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescription
   desc.add<std::vector<std::string>>("input_names", 
     { "input_1", "input_2", "input_3",  "input_4","input_5","input_6","input_7","input_8","input_9","input_10","input_11","input_12" });
   desc.add<edm::FileInPath>("graph_path",
-    edm::FileInPath("RecoBTag/TensorFlow/data/oldsetup_epoch_cons.pb"));
+    edm::FileInPath("RecoBTag/TensorFlow/data/Converted_retraining.pb"));
 
   desc.add<std::vector<std::string>>("lp_names",
     { "globals_input_batchnorm/keras_learning_phase" });
@@ -150,6 +150,9 @@ void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescription
   {
     edm::ParameterSetDescription psd0;
     psd0.add<std::vector<unsigned int>>("probb", {0});
+    psd0.add<std::vector<unsigned int>>("probc", {1});
+    psd0.add<std::vector<unsigned int>>("probu", {2});
+    psd0.add<std::vector<unsigned int>>("probg", {3});
     desc.add<edm::ParameterSetDescription>("flav_table", psd0);
   }
 
@@ -285,10 +288,10 @@ void DeepVertexTFJetTagsProducer::produce(edm::Event& iEvent, const edm::EventSe
       
       //add phi and mass!!
       
-      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 0) = (features.jet_features.pt-65.0491047)/20.19552972;
-      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 1) = (features.jet_features.eta-0.00124901765)/1.20940063;
-      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 2) = (features.jet_features.phi-0.0179816545)/1.81650516;
-      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 3) = (features.jet_features.mass-10.6507911)/3.40517432;
+      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 0) = (features.jet_features.pt);//-65.0491047)/20.19552972;
+      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 1) = (features.jet_features.eta);//+0.00124901765)/1.20940063;
+      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 2) = (features.jet_features.phi);//+0.0179816545)/1.81650516;
+      input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 3) = (features.jet_features.mass);//-10.6507911)/3.40517432;
       
       
       std::cout<<input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 0)<<" "<<input_tensors.at(kGlobal).second.matrix<float>()(jet_bn, 1)<<
@@ -329,11 +332,20 @@ void DeepVertexTFJetTagsProducer::produce(edm::Event& iEvent, const edm::EventSe
      
      
     std::cout<<"first neighbour"<<std::endl;
+    
     for (unsigned int f=0; f<20; f++){ 
         for (unsigned int fj=0; fj<36; fj++){ 
             std::cout<<input_tensors.at(kNeighbourTracks).second.tensor<float, 3>()(jet_bn, f, fj)<<" ";}
         std::cout<<" "<<" "<<std::endl;  }
 
+
+    std::cout<<"second neighbour"<<std::endl;
+    
+    for (unsigned int f=0; f<20; f++){ 
+        for (unsigned int fj=0; fj<36; fj++){ 
+            std::cout<<input_tensors.at(kNeighbourTracks+1).second.tensor<float, 3>()(jet_bn, f, fj)<<" ";}
+        std::cout<<" "<<" "<<std::endl;  }
+        
     }////different
 
     

@@ -260,7 +260,7 @@ namespace btagbtvdeep {
                 seed_features.seed_2D_signedSip=(N+log(fabs(im->second.first.get_sip2d_Signed())))*((im->second.first.get_sip2d_Signed() < 0) ? -1 : (im->second.first.get_sip2d_Signed() > 0));
                 seed_features.seed_3D_TrackProbability=im->second.first.get_trackProbability3D();
                 seed_features.seed_2D_TrackProbability=im->second.first.get_trackProbability2D();
-                seed_features.seed_chi2reduced=(im->second.first.get_chi2reduced()<=0) ? 0: log(im->second.first.get_chi2reduced());//log(im->second.first.get_chi2reduced());
+                seed_features.seed_chi2reduced=im->second.first.get_chi2reduced();//log(im->second.first.get_chi2reduced());
                 seed_features.seed_nPixelHits=im->second.first.get_nPixelHits();
                 seed_features.seed_nHits=im->second.first.get_nHits();
                 seed_features.seed_jetAxisDistance=log(im->second.first.get_jetAxisDistance());

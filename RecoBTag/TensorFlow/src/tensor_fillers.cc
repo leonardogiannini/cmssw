@@ -235,49 +235,50 @@ namespace btagbtvdeep {
 
     float* ptr = &tensor.tensor<float, 3>()(jet_n, seed_n, 0);    
     
-//     *ptr     = seed_features.seed_pt;
-//     *(++ptr) = seed_features.seed_eta;
-//     *(++ptr) = seed_features.seed_phi;
-//     *(++ptr) = seed_features.seed_mass;    
-//     *(++ptr) = seed_features.seed_dz;
-//     *(++ptr) = seed_features.seed_dxy;
-//     *(++ptr) = seed_features.seed_3D_ip;
-//     *(++ptr) = seed_features.seed_3D_sip;
-//     *(++ptr) = seed_features.seed_2D_ip;
-//     *(++ptr) = seed_features.seed_2D_sip;    
-//     *(++ptr) = seed_features.seed_3D_signedIp;
-//     *(++ptr) = seed_features.seed_3D_signedSip;
-//     *(++ptr) = seed_features.seed_2D_signedIp;
-//     *(++ptr) = seed_features.seed_2D_signedSip;  
-//     *(++ptr) = seed_features.seed_3D_TrackProbability;
-//     *(++ptr) = seed_features.seed_2D_TrackProbability;
-//     *(++ptr) = seed_features.seed_chi2reduced;
-//     *(++ptr) = seed_features.seed_nPixelHits;
-//     *(++ptr) = seed_features.seed_nHits;
-//     *(++ptr) = seed_features.seed_jetAxisDistance;
-//     *(++ptr) = seed_features.seed_jetAxisDlength;
+     *ptr     = seed_features.seed_pt;
+     *(++ptr) = seed_features.seed_eta;
+     *(++ptr) = seed_features.seed_phi;
+     *(++ptr) = seed_features.seed_mass;    
+     *(++ptr) = seed_features.seed_dz;
+     *(++ptr) = seed_features.seed_dxy;
+     *(++ptr) = seed_features.seed_3D_ip;
+     *(++ptr) = seed_features.seed_3D_sip;
+     *(++ptr) = seed_features.seed_2D_ip;
+     *(++ptr) = seed_features.seed_2D_sip;    
+     *(++ptr) = seed_features.seed_3D_signedIp;
+     *(++ptr) = seed_features.seed_3D_signedSip;
+     *(++ptr) = seed_features.seed_2D_signedIp;
+     *(++ptr) = seed_features.seed_2D_signedSip;  
+     *(++ptr) = seed_features.seed_3D_TrackProbability;
+     *(++ptr) = seed_features.seed_2D_TrackProbability;
+     *(++ptr) = seed_features.seed_chi2reduced;
+     *(++ptr) = seed_features.seed_nPixelHits;
+     *(++ptr) = seed_features.seed_nHits;
+     *(++ptr) = seed_features.seed_jetAxisDistance;
+     *(++ptr) = seed_features.seed_jetAxisDlength;
+     if(0) std::cout << seed_features_mean.seed_pt << seed_features_std.seed_pt<< std::endl;
     
-        *ptr     = (seed_features.seed_pt!=0)*(seed_features.seed_pt-seed_features_mean.seed_pt)/seed_features_std.seed_pt;
-        *(++ptr) = (seed_features.seed_eta!=0)*(seed_features.seed_eta-seed_features_mean.seed_eta)/seed_features_std.seed_eta;
-        *(++ptr) = (seed_features.seed_phi!=0)*(seed_features.seed_phi-seed_features_mean.seed_phi)/seed_features_std.seed_phi;
-        *(++ptr) = (seed_features.seed_mass!=0)*(seed_features.seed_mass-seed_features_mean.seed_mass)/seed_features_std.seed_mass;
-        *(++ptr) = (seed_features.seed_dz!=0)*(seed_features.seed_dz-seed_features_mean.seed_dz)/seed_features_std.seed_dz;
-        *(++ptr) = (seed_features.seed_dxy!=0)*(seed_features.seed_dxy-seed_features_mean.seed_dxy)/seed_features_std.seed_dxy;
-        *(++ptr) = (seed_features.seed_3D_ip!=0)*(seed_features.seed_3D_ip-seed_features_mean.seed_3D_ip)/seed_features_std.seed_3D_ip;
-        *(++ptr) = (seed_features.seed_3D_sip!=0)*(seed_features.seed_3D_sip-seed_features_mean.seed_3D_sip)/seed_features_std.seed_3D_sip;
-        *(++ptr) = (seed_features.seed_2D_ip!=0)*(seed_features.seed_2D_ip-seed_features_mean.seed_2D_ip)/seed_features_std.seed_2D_ip;
-        *(++ptr) = (seed_features.seed_2D_sip!=0)*(seed_features.seed_2D_sip-seed_features_mean.seed_2D_sip)/seed_features_std.seed_2D_sip;    
-        *(++ptr) = (seed_features.seed_3D_signedIp!=0)*(seed_features.seed_3D_signedIp-seed_features_mean.seed_3D_signedIp)/seed_features_std.seed_3D_signedIp;
-        *(++ptr) = (seed_features.seed_3D_signedSip!=0)*(seed_features.seed_3D_signedSip-seed_features_mean.seed_3D_signedSip)/seed_features_std.seed_3D_signedSip;
-        *(++ptr) = (seed_features.seed_2D_signedIp!=0)*(seed_features.seed_2D_signedIp-seed_features_mean.seed_2D_signedIp)/seed_features_std.seed_2D_signedIp;
-        *(++ptr) = (seed_features.seed_2D_signedSip!=0)*(seed_features.seed_2D_signedSip-seed_features_mean.seed_2D_signedSip)/seed_features_std.seed_2D_signedSip; 
-        *(++ptr) = (seed_features.seed_3D_TrackProbability!=0)*(seed_features.seed_3D_TrackProbability-seed_features_mean.seed_3D_TrackProbability)/seed_features_std.seed_3D_TrackProbability;
-        *(++ptr) = (seed_features.seed_2D_TrackProbability!=0)*(seed_features.seed_2D_TrackProbability-seed_features_mean.seed_2D_TrackProbability)/seed_features_std.seed_2D_TrackProbability;
-        *(++ptr) = (seed_features.seed_chi2reduced!=0)*(seed_features.seed_chi2reduced-seed_features_mean.seed_chi2reduced)/seed_features_std.seed_chi2reduced;
-        *(++ptr) = (seed_features.seed_nPixelHits!=0)*(seed_features.seed_nPixelHits-seed_features_mean.seed_nPixelHits)/seed_features_std.seed_nPixelHits;
-        *(++ptr) = (seed_features.seed_nHits!=0)*(seed_features.seed_nHits-seed_features_mean.seed_nHits)/seed_features_std.seed_nHits;
-        *(++ptr) = (seed_features.seed_jetAxisDistance!=0)*(seed_features.seed_jetAxisDistance-seed_features_mean.seed_jetAxisDistance)/seed_features_std.seed_jetAxisDistance;
-        *(++ptr) = (seed_features.seed_jetAxisDlength!=0)*(seed_features.seed_jetAxisDlength-seed_features_mean.seed_jetAxisDlength)/seed_features_std.seed_jetAxisDlength;
+//        *ptr     = (seed_features.seed_pt!=0)*(seed_features.seed_pt-seed_features_mean.seed_pt)/seed_features_std.seed_pt;
+//        *(++ptr) = (seed_features.seed_eta!=0)*(seed_features.seed_eta-seed_features_mean.seed_eta)/seed_features_std.seed_eta;
+//        *(++ptr) = (seed_features.seed_phi!=0)*(seed_features.seed_phi-seed_features_mean.seed_phi)/seed_features_std.seed_phi;
+//        *(++ptr) = (seed_features.seed_mass!=0)*(seed_features.seed_mass-seed_features_mean.seed_mass)/seed_features_std.seed_mass;
+//        *(++ptr) = (seed_features.seed_dz!=0)*(seed_features.seed_dz-seed_features_mean.seed_dz)/seed_features_std.seed_dz;
+//        *(++ptr) = (seed_features.seed_dxy!=0)*(seed_features.seed_dxy-seed_features_mean.seed_dxy)/seed_features_std.seed_dxy;
+//        *(++ptr) = (seed_features.seed_3D_ip!=0)*(seed_features.seed_3D_ip-seed_features_mean.seed_3D_ip)/seed_features_std.seed_3D_ip;
+//        *(++ptr) = (seed_features.seed_3D_sip!=0)*(seed_features.seed_3D_sip-seed_features_mean.seed_3D_sip)/seed_features_std.seed_3D_sip;
+//        *(++ptr) = (seed_features.seed_2D_ip!=0)*(seed_features.seed_2D_ip-seed_features_mean.seed_2D_ip)/seed_features_std.seed_2D_ip;
+//        *(++ptr) = (seed_features.seed_2D_sip!=0)*(seed_features.seed_2D_sip-seed_features_mean.seed_2D_sip)/seed_features_std.seed_2D_sip;    
+//        *(++ptr) = (seed_features.seed_3D_signedIp!=0)*(seed_features.seed_3D_signedIp-seed_features_mean.seed_3D_signedIp)/seed_features_std.seed_3D_signedIp;
+//        *(++ptr) = (seed_features.seed_3D_signedSip!=0)*(seed_features.seed_3D_signedSip-seed_features_mean.seed_3D_signedSip)/seed_features_std.seed_3D_signedSip;
+//        *(++ptr) = (seed_features.seed_2D_signedIp!=0)*(seed_features.seed_2D_signedIp-seed_features_mean.seed_2D_signedIp)/seed_features_std.seed_2D_signedIp;
+//        *(++ptr) = (seed_features.seed_2D_signedSip!=0)*(seed_features.seed_2D_signedSip-seed_features_mean.seed_2D_signedSip)/seed_features_std.seed_2D_signedSip; 
+//        *(++ptr) = (seed_features.seed_3D_TrackProbability!=0)*(seed_features.seed_3D_TrackProbability-seed_features_mean.seed_3D_TrackProbability)/seed_features_std.seed_3D_TrackProbability;
+//        *(++ptr) = (seed_features.seed_2D_TrackProbability!=0)*(seed_features.seed_2D_TrackProbability-seed_features_mean.seed_2D_TrackProbability)/seed_features_std.seed_2D_TrackProbability;
+//        *(++ptr) = (seed_features.seed_chi2reduced!=0)*(seed_features.seed_chi2reduced-seed_features_mean.seed_chi2reduced)/seed_features_std.seed_chi2reduced;
+//        *(++ptr) = (seed_features.seed_nPixelHits!=0)*(seed_features.seed_nPixelHits-seed_features_mean.seed_nPixelHits)/seed_features_std.seed_nPixelHits;
+//        *(++ptr) = (seed_features.seed_nHits!=0)*(seed_features.seed_nHits-seed_features_mean.seed_nHits)/seed_features_std.seed_nHits;
+//        *(++ptr) = (seed_features.seed_jetAxisDistance!=0)*(seed_features.seed_jetAxisDistance-seed_features_mean.seed_jetAxisDistance)/seed_features_std.seed_jetAxisDistance;
+//        *(++ptr) = (seed_features.seed_jetAxisDlength!=0)*(seed_features.seed_jetAxisDlength-seed_features_mean.seed_jetAxisDlength)/seed_features_std.seed_jetAxisDlength;
 
 
   }
@@ -376,85 +377,88 @@ namespace btagbtvdeep {
 
     float* ptr = &tensor.tensor<float, 3>()(jet_n, t_i,  0);    
         
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_pt;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_eta;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_phi;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_mass;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dz;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dxy;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_3D_ip;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_3D_sip;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_2D_ip;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_2D_sip;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAdist;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAdsig;      
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_x;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_y;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_z;      
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_xerr;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_yerr;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_zerr;      
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_x;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_y;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_z;      
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_xerr;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_yerr;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_zerr; 
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrack;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodSeed;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed2D;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed3D;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D;      
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_pvd;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_pvd;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetAxis_dist;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetMomenta_dotprod;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DEta;
-//     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DPhi;    
+    *ptr  = neighbourTracks_features[t_i].nearTracks_pt;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_eta;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_phi;
+     
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dz;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dxy;
+     
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_mass;
+     
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_3D_ip;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_3D_sip;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_2D_ip;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_2D_sip;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAdist;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAdsig;      
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_x;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_y;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_z;      
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_xerr;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_yerr;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_zerr;      
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_x;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_y;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_z;      
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_xerr;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_yerr;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_zerr; 
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrack;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodSeed;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed2D;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed3D;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D;      
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonSeed_pvd;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAonTrack_pvd;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetAxis_dist;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetMomenta_dotprod;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DEta;
+     *(++ptr) = neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DPhi;    
     
-            
-    *ptr = (neighbourTracks_features[t_i].nearTracks_pt!=0)*(neighbourTracks_features[t_i].nearTracks_pt-tp_features_mean.nearTracks_pt)/tp_features_std.nearTracks_pt;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_eta!=0)*(neighbourTracks_features[t_i].nearTracks_eta-tp_features_mean.nearTracks_eta)/tp_features_std.nearTracks_eta;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_phi!=0)*(neighbourTracks_features[t_i].nearTracks_phi-tp_features_mean.nearTracks_phi)/tp_features_std.nearTracks_phi;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dz!=0)*(neighbourTracks_features[t_i].nearTracks_dz-tp_features_mean.nearTracks_dz)/tp_features_std.nearTracks_dz;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dxy!=0)*(neighbourTracks_features[t_i].nearTracks_dxy-tp_features_mean.nearTracks_dxy)/tp_features_std.nearTracks_dxy;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_mass!=0)*(neighbourTracks_features[t_i].nearTracks_mass-tp_features_mean.nearTracks_mass)/tp_features_std.nearTracks_mass;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_3D_ip!=0)*(neighbourTracks_features[t_i].nearTracks_3D_ip-tp_features_mean.nearTracks_3D_ip)/tp_features_std.nearTracks_3D_ip;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_3D_sip!=0)*(neighbourTracks_features[t_i].nearTracks_3D_sip-tp_features_mean.nearTracks_3D_sip)/tp_features_std.nearTracks_3D_sip;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_2D_ip!=0)*(neighbourTracks_features[t_i].nearTracks_2D_ip-tp_features_mean.nearTracks_2D_ip)/tp_features_std.nearTracks_2D_ip;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_2D_sip!=0)*(neighbourTracks_features[t_i].nearTracks_2D_sip-tp_features_mean.nearTracks_2D_sip)/tp_features_std.nearTracks_2D_sip;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAdist!=0)*(neighbourTracks_features[t_i].nearTracks_PCAdist-tp_features_mean.nearTracks_PCAdist)/tp_features_std.nearTracks_PCAdist;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAdsig!=0)*(neighbourTracks_features[t_i].nearTracks_PCAdsig-tp_features_mean.nearTracks_PCAdsig)/tp_features_std.nearTracks_PCAdsig;    
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_x!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_x-tp_features_mean.nearTracks_PCAonSeed_x)/tp_features_std.nearTracks_PCAonSeed_x;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_y!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_y-tp_features_mean.nearTracks_PCAonSeed_y)/tp_features_std.nearTracks_PCAonSeed_y;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_z!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_z-tp_features_mean.nearTracks_PCAonSeed_z)/tp_features_std.nearTracks_PCAonSeed_z;    
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_xerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_xerr-tp_features_mean.nearTracks_PCAonSeed_xerr)/tp_features_std.nearTracks_PCAonSeed_xerr;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_yerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_yerr-tp_features_mean.nearTracks_PCAonSeed_yerr)/tp_features_std.nearTracks_PCAonSeed_yerr;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_zerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_zerr-tp_features_mean.nearTracks_PCAonSeed_zerr)/tp_features_std.nearTracks_PCAonSeed_zerr;   
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_x!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_x-tp_features_mean.nearTracks_PCAonTrack_x)/tp_features_std.nearTracks_PCAonTrack_x;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_y!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_y-tp_features_mean.nearTracks_PCAonTrack_y)/tp_features_std.nearTracks_PCAonTrack_y;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_z!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_z-tp_features_mean.nearTracks_PCAonTrack_z)/tp_features_std.nearTracks_PCAonTrack_z;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_xerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_xerr-tp_features_mean.nearTracks_PCAonTrack_xerr)/tp_features_std.nearTracks_PCAonTrack_xerr;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_yerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_yerr-tp_features_mean.nearTracks_PCAonTrack_yerr)/tp_features_std.nearTracks_PCAonTrack_yerr;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_zerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_zerr-tp_features_mean.nearTracks_PCAonTrack_zerr)/tp_features_std.nearTracks_PCAonTrack_zerr;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrack!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrack-tp_features_mean.nearTracks_dotprodTrack)/tp_features_std.nearTracks_dotprodTrack;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodSeed!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodSeed-tp_features_mean.nearTracks_dotprodSeed)/tp_features_std.nearTracks_dotprodSeed;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed2D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed2D-tp_features_mean.nearTracks_dotprodTrackSeed2D)/tp_features_std.nearTracks_dotprodTrackSeed2D;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed3D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed3D-tp_features_mean.nearTracks_dotprodTrackSeed3D)/tp_features_std.nearTracks_dotprodTrackSeed3D;
-    
-    /*    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D-tp_features_mean.nearTracks_dotprodTrackSeedVectors2D)/tp_features_std.nearTracks_dotprodTrackSeedVectors2D;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D-tp_features_mean.nearTracks_dotprodTrackSeedVectors3D)/tp_features_std.nearTracks_dotprodTrackSeedVectors3D;   */ 
-    
-    //forse va riscambiato    
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D-tp_features_mean.nearTracks_dotprodTrackSeedVectors3D)/tp_features_std.nearTracks_dotprodTrackSeedVectors3D;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D-tp_features_mean.nearTracks_dotprodTrackSeedVectors2D)/tp_features_std.nearTracks_dotprodTrackSeedVectors2D; 
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_pvd!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_pvd-tp_features_mean.nearTracks_PCAonSeed_pvd)/tp_features_std.nearTracks_PCAonSeed_pvd;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_pvd!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_pvd-tp_features_mean.nearTracks_PCAonTrack_pvd)/tp_features_std.nearTracks_PCAonTrack_pvd;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetAxis_dist!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetAxis_dist-tp_features_mean.nearTracks_PCAjetAxis_dist)/tp_features_std.nearTracks_PCAjetAxis_dist;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetMomenta_dotprod!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetMomenta_dotprod-tp_features_mean.nearTracks_PCAjetMomenta_dotprod)/tp_features_std.nearTracks_PCAjetMomenta_dotprod;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DEta!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DEta-tp_features_mean.nearTracks_PCAjetDirs_DEta)/tp_features_std.nearTracks_PCAjetDirs_DEta;
-    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DPhi!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DPhi-tp_features_mean.nearTracks_PCAjetDirs_DPhi)/tp_features_std.nearTracks_PCAjetDirs_DPhi;
+      if(0) std::cout <<tp_features_mean.nearTracks_pt <<tp_features_std.nearTracks_pt <<std::endl;            
+//    *ptr = (neighbourTracks_features[t_i].nearTracks_pt!=0)*(neighbourTracks_features[t_i].nearTracks_pt-tp_features_mean.nearTracks_pt)/tp_features_std.nearTracks_pt;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_eta!=0)*(neighbourTracks_features[t_i].nearTracks_eta-tp_features_mean.nearTracks_eta)/tp_features_std.nearTracks_eta;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_phi!=0)*(neighbourTracks_features[t_i].nearTracks_phi-tp_features_mean.nearTracks_phi)/tp_features_std.nearTracks_phi;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dz!=0)*(neighbourTracks_features[t_i].nearTracks_dz-tp_features_mean.nearTracks_dz)/tp_features_std.nearTracks_dz;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dxy!=0)*(neighbourTracks_features[t_i].nearTracks_dxy-tp_features_mean.nearTracks_dxy)/tp_features_std.nearTracks_dxy;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_mass!=0)*(neighbourTracks_features[t_i].nearTracks_mass-tp_features_mean.nearTracks_mass)/tp_features_std.nearTracks_mass;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_3D_ip!=0)*(neighbourTracks_features[t_i].nearTracks_3D_ip-tp_features_mean.nearTracks_3D_ip)/tp_features_std.nearTracks_3D_ip;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_3D_sip!=0)*(neighbourTracks_features[t_i].nearTracks_3D_sip-tp_features_mean.nearTracks_3D_sip)/tp_features_std.nearTracks_3D_sip;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_2D_ip!=0)*(neighbourTracks_features[t_i].nearTracks_2D_ip-tp_features_mean.nearTracks_2D_ip)/tp_features_std.nearTracks_2D_ip;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_2D_sip!=0)*(neighbourTracks_features[t_i].nearTracks_2D_sip-tp_features_mean.nearTracks_2D_sip)/tp_features_std.nearTracks_2D_sip;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAdist!=0)*(neighbourTracks_features[t_i].nearTracks_PCAdist-tp_features_mean.nearTracks_PCAdist)/tp_features_std.nearTracks_PCAdist;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAdsig!=0)*(neighbourTracks_features[t_i].nearTracks_PCAdsig-tp_features_mean.nearTracks_PCAdsig)/tp_features_std.nearTracks_PCAdsig;    
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_x!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_x-tp_features_mean.nearTracks_PCAonSeed_x)/tp_features_std.nearTracks_PCAonSeed_x;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_y!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_y-tp_features_mean.nearTracks_PCAonSeed_y)/tp_features_std.nearTracks_PCAonSeed_y;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_z!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_z-tp_features_mean.nearTracks_PCAonSeed_z)/tp_features_std.nearTracks_PCAonSeed_z;    
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_xerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_xerr-tp_features_mean.nearTracks_PCAonSeed_xerr)/tp_features_std.nearTracks_PCAonSeed_xerr;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_yerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_yerr-tp_features_mean.nearTracks_PCAonSeed_yerr)/tp_features_std.nearTracks_PCAonSeed_yerr;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_zerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_zerr-tp_features_mean.nearTracks_PCAonSeed_zerr)/tp_features_std.nearTracks_PCAonSeed_zerr;   
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_x!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_x-tp_features_mean.nearTracks_PCAonTrack_x)/tp_features_std.nearTracks_PCAonTrack_x;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_y!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_y-tp_features_mean.nearTracks_PCAonTrack_y)/tp_features_std.nearTracks_PCAonTrack_y;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_z!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_z-tp_features_mean.nearTracks_PCAonTrack_z)/tp_features_std.nearTracks_PCAonTrack_z;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_xerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_xerr-tp_features_mean.nearTracks_PCAonTrack_xerr)/tp_features_std.nearTracks_PCAonTrack_xerr;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_yerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_yerr-tp_features_mean.nearTracks_PCAonTrack_yerr)/tp_features_std.nearTracks_PCAonTrack_yerr;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_zerr!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_zerr-tp_features_mean.nearTracks_PCAonTrack_zerr)/tp_features_std.nearTracks_PCAonTrack_zerr;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrack!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrack-tp_features_mean.nearTracks_dotprodTrack)/tp_features_std.nearTracks_dotprodTrack;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodSeed!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodSeed-tp_features_mean.nearTracks_dotprodSeed)/tp_features_std.nearTracks_dotprodSeed;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed2D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed2D-tp_features_mean.nearTracks_dotprodTrackSeed2D)/tp_features_std.nearTracks_dotprodTrackSeed2D;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed3D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeed3D-tp_features_mean.nearTracks_dotprodTrackSeed3D)/tp_features_std.nearTracks_dotprodTrackSeed3D;
+//    
+//    /*    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D-tp_features_mean.nearTracks_dotprodTrackSeedVectors2D)/tp_features_std.nearTracks_dotprodTrackSeedVectors2D;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D-tp_features_mean.nearTracks_dotprodTrackSeedVectors3D)/tp_features_std.nearTracks_dotprodTrackSeedVectors3D;   */ 
+//    
+//    //forse va riscambiato    
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors2D-tp_features_mean.nearTracks_dotprodTrackSeedVectors3D)/tp_features_std.nearTracks_dotprodTrackSeedVectors3D;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D!=0)*(neighbourTracks_features[t_i].nearTracks_dotprodTrackSeedVectors3D-tp_features_mean.nearTracks_dotprodTrackSeedVectors2D)/tp_features_std.nearTracks_dotprodTrackSeedVectors2D; 
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonSeed_pvd!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonSeed_pvd-tp_features_mean.nearTracks_PCAonSeed_pvd)/tp_features_std.nearTracks_PCAonSeed_pvd;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAonTrack_pvd!=0)*(neighbourTracks_features[t_i].nearTracks_PCAonTrack_pvd-tp_features_mean.nearTracks_PCAonTrack_pvd)/tp_features_std.nearTracks_PCAonTrack_pvd;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetAxis_dist!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetAxis_dist-tp_features_mean.nearTracks_PCAjetAxis_dist)/tp_features_std.nearTracks_PCAjetAxis_dist;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetMomenta_dotprod!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetMomenta_dotprod-tp_features_mean.nearTracks_PCAjetMomenta_dotprod)/tp_features_std.nearTracks_PCAjetMomenta_dotprod;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DEta!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DEta-tp_features_mean.nearTracks_PCAjetDirs_DEta)/tp_features_std.nearTracks_PCAjetDirs_DEta;
+//    *(++ptr) = (neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DPhi!=0)*(neighbourTracks_features[t_i].nearTracks_PCAjetDirs_DPhi-tp_features_mean.nearTracks_PCAjetDirs_DPhi)/tp_features_std.nearTracks_PCAjetDirs_DPhi;
 
     }
 
