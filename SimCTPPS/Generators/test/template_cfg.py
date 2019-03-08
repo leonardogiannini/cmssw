@@ -176,7 +176,7 @@ process.p = cms.Path(
 
 # output configuration
 process.output = cms.OutputModule("PoolOutputModule",
-  fileName = cms.untracked.string("root://eostotem.cern.ch//$eos_dir/ntuple.root"),
+  fileName = cms.untracked.string("file://$eos_dir/ntuple.root"),
   splitLevel = cms.untracked.int32(0),
   eventAutoFlushCompressedSize=cms.untracked.int32(-900),
   compressionAlgorithm=cms.untracked.string("LZMA"),
