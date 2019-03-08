@@ -26,7 +26,7 @@ save_ntuples="False"
 function RunOne()
 {
 	dir="m_X_$mass/xangle_$xangle"
-	eos_dir="/eos/totem/user/j/jkaspar/PPXZ/m_X_$mass/xangle_$xangle"
+	eos_dir="/eos/cms/store/group/phys_pps/ppxz/m_X_$mass/xangle_$xangle"
 	echo $dir
 
 	mkdir -p "$dir"
