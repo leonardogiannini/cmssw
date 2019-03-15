@@ -113,6 +113,10 @@ muonTable = cms.EDProducer("SimpleCandidateFlatTableProducer",
         tightId = Var("passed('CutBasedIdTight')",bool,doc="cut-based ID, tight WP"),
         softId = Var("passed('SoftCutBasedId')",bool,doc="soft cut-based ID"),
         highPtId = Var("?passed('CutBasedIdGlobalHighPt')?2:passed('CutBasedIdTrkHighPt')","uint8",doc="high-pT cut-based ID (1 = tracker high pT, 2 = global high pT, which includes tracker high pT)"),
+        pvNDOF = Var("sourceCandidatePtr(0).vertexRef().ndof() ",int,doc="pv ref nDOF"),
+        pvRefDz = Var("sourceCandidatePtr(0).dzAssociatedPV() ",float ,doc="pv ref dz"),
+        pvRefKey = Var("sourceCandidatePtr(0).vertexRef().key() ",int,doc="pv ref KEY"),
+        
     ),
     externalVariables = cms.PSet(
         mvaTTH = ExtVar(cms.InputTag("muonMVATTH"),float, doc="TTH MVA lepton ID score",precision=14),

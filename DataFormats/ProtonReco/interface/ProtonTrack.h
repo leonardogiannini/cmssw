@@ -42,14 +42,69 @@ namespace reco
 
       void setXi( float xi ) { xi_ = xi; }
       float xi() const { return xi_; }
+      float xiErr() const { return xi_unc_; }
 
       void setValid( bool valid=true ) { isValid_ = valid; }
       bool valid() const { return isValid_; }
 
       // TODO: add proper getters, setters
       enum { rmSingleRP, rmMultiRP } method;
-
       enum { sector45, sector56 } lhcSector;
+
+      bool singleRP() const { return method==rmSingleRP; }
+      bool multiRP() const { return method==rmMultiRP; }
+      bool isSector45() const { return lhcSector==sector45; }
+      bool isSector56() const { return lhcSector==sector56; } 
+      
+        // static const int kDetMask            = 0xF;
+        // static const int kSubdetMask         = 0x7;
+        // static const int kDetOffset          = 28;
+        // static const int kSubdetOffset       = 25;
+        // static const int startArmBit         = 24;
+        // static const int maskArm             = 0x1;
+        // static const int startStationBit     = 22;
+        // static const int maskStation         = 0x3;
+        // static const int startRPBit          = 19;
+        // static const int maskRP              = 0x7;
+        
+      bool pixelFlag() const
+      {                 
+          for(auto rp : contributingRPIds)  {if (((rp>>25)&0x7)==4) return true;}
+          return false; 
+      }
+      
+      bool armFlag() const
+      {                 
+          for(auto rp : contributingRPIds)  {if (((rp>>24)&0x1)==1) return true;}
+          return false; 
+      }
+      
+      bool statFlag() const
+      {                 
+          for(auto rp : contributingRPIds)  {if (((rp>>22)&0x3)==2) return true;}
+          return false; 
+      }
+      
+      bool rpFlag() const
+      {                 
+          for(auto rp : contributingRPIds)  {if (((rp>>19)&0x7)==3) return true;}
+          return false; 
+      }
+      
+      int rpArmStatId() const
+      {   
+          int multiplier=1;
+          int res=0;
+          for(auto rp : contributingRPIds) 
+          {
+              res=res+multiplier*(100*((rp>>24)&0x1) + 10*((rp>>22)&0x3) + ((rp>>19)&0x7));
+              multiplier=multiplier*1000;
+          } 
+          return res;
+      }
+      
+      
+      
 
       unsigned int fitNDF;
       double fitChiSq;
