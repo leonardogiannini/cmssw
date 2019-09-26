@@ -1,11 +1,13 @@
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 config = config()
 
-config.General.requestName = '1NANOREG16UL'
+config.General.requestName = '3NANOREG16UL'
 config.General.workArea = '../../../../../crab_projects'
 config.General.transferOutputs = True
 config.General.transferLogs = True
 
+config.JobType.numCores = 4
+config.JobType.maxMemoryMB = 6000
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'myNanoProdMc2016_NANO.py'
 
@@ -15,8 +17,8 @@ config.Data.inputDataset = '/TTToHadronic_TuneCP5_PSweights_13TeV-powheg-pythia8
 
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'EventAwareLumiBased'
-config.Data.unitsPerJob = 80000
-config.Data.totalUnits = 80000
+config.Data.unitsPerJob = 50000
+config.Data.totalUnits = 50000*2
 config.Data.outLFNDirBase = '/store/user/%s/Nano16legacyReg/' % (getUsernameFromSiteDB())
 config.Data.publication = True
 config.Data.outputDatasetTag = 'NANO16legacy_RegInputs'

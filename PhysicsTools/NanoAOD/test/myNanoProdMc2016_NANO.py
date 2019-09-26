@@ -31,9 +31,16 @@ process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring()
 )
 
-process.options = cms.untracked.PSet(
+#process.options = cms.untracked.PSet(
+#)
 
+process.options = cms.untracked.PSet(
+ wantSummary = cms.untracked.bool(True),
+ numberOfThreads = cms.untracked.uint32(4),
+ numberOfStreams = cms.untracked.uint32(4),
 )
+
+
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
