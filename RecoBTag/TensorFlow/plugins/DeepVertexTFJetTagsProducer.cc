@@ -144,7 +144,7 @@ void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescription
                                       "input_10",
                                       "input_11",
                                       "input_12"});
-  desc.add<edm::FileInPath>("graph_path", edm::FileInPath("RecoBTag/Combined/data/DeepVertex/Converted_retraining.pb"));
+  desc.add<edm::FileInPath>("graph_path", edm::FileInPath("RecoBTag/Combined/data/DeepVertex/Converted_retraining2.pb"));
   desc.add<std::vector<std::string>>("lp_names", {});
   desc.add<std::vector<std::string>>("output_names", {"output_node0"});  ///SIGMOID
   {

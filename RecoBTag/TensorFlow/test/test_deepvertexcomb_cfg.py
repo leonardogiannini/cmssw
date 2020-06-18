@@ -49,6 +49,8 @@ updateJetCollection(
    jetCorrections = ('AK4PFchs', cms.vstring(['L1FastJet', 'L2Relative', 'L3Absolute']), 'None'),
    btagDiscriminators = [
        'pfDeepVertexJetTags:probb',
+       'pfDeepCombinedJetTags:probb',
+
       ]
    )
 
@@ -69,9 +71,10 @@ process.out.outputCommands.append('keep *_pfDeepCSVTagInfos*_*_*')
 process.out.outputCommands.append('keep *_pfDeepFlavourTagInfos*_*_*')
 process.out.outputCommands.append('keep *_pfDeepFlavourJetTags*_*_*')
 process.out.outputCommands.append('keep *_pfDeepVertexJetTags*_*_*')
+process.out.outputCommands.append('keep *_pfDeepCombinedJetTags*_*_*')
 process.out.outputCommands.append('keep *_updatedPatJets*_*_*')
 
-process.out.fileName = 'test_deep_vertex_MINIAODSIM_myCfg.root'
+process.out.fileName = 'test_deep_vertexcomb_MINIAODSIM_myCfg.root'
 
 #                                         ##
 #   process.options.wantSummary = False   ##  (to suppress the long output at the end of the job)
