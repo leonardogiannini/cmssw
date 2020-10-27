@@ -57,7 +57,8 @@ from PhysicsTools.PatAlgos.patInputFiles_cff import filesRelValTTbarPileUpMINIAO
 process.source.fileNames = filesRelValTTbarPileUpMINIAODSIM
 process.source.fileNames = cms.untracked.vstring(
     '/store/mc/RunIIFall17MiniAODv2/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v2/60000/FCC2AFA9-4BBB-E811-B35F-0CC47AFB7D48.root'
-    #'file:/scratch/lgiannini/bTAG_test_CMSSW/CMSSW_10_1_0_pre3/src/RecoBTag/DeepFlavour/test/0055C65C-E558-E811-AB0E-008CFA582BF4.root')
+    #'file:/scratch/lgiannini/CMSSW_11_1_0_pre8/src/RecoBTag/TensorFlow/test/FCC2AFA9-4BBB-E811-B35F-0CC47AFB7D48.root'
+)
 
 process.maxEvents.input = 10
 
