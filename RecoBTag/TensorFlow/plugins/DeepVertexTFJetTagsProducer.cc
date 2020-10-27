@@ -144,7 +144,7 @@ void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescription
                                       "input_10",
                                       "input_11",
                                       "input_12"});
-  desc.add<edm::FileInPath>("graph_path", edm::FileInPath("RecoBTag/Combined/data/DeepVertex/Converted_retraining.pb"));
+  desc.add<edm::FileInPath>("graph_path", edm::FileInPath("RecoBTag/Combined/data/DeepVertex/phase1_deepvertex.pb"));
   desc.add<std::vector<std::string>>("lp_names", {});
   desc.add<std::vector<std::string>>("output_names", {"output_node0"});  ///SIGMOID
   {
@@ -156,7 +156,7 @@ void DeepVertexTFJetTagsProducer::fillDescriptions(edm::ConfigurationDescription
     desc.add<edm::ParameterSetDescription>("flav_table", psd0);
   }
 
-  desc.add<bool>("batch_eval", false);
+  desc.add<bool>("batch_eval", true);
   desc.add<double>("min_jet_pt", 15.0);
   desc.add<double>("max_jet_eta", 2.5);
   desc.add<unsigned int>("nThreads", 1);
@@ -283,7 +283,7 @@ void DeepVertexTFJetTagsProducer::produce(edm::Event& iEvent, const edm::EventSe
 
     // run the session
     std::vector<tensorflow::Tensor> outputs;
-    // std::cout <<"Input size" <<  input_tensors.size() << std::endl;
+    
     if (run_session)
       tensorflow::run(session_, input_tensors, output_names_, &outputs, singleThreadPool_);
 
