@@ -109,6 +109,15 @@ private:
                      const TransientTrackingRecHitBuilder& theTTRHBuilder,
                      const tensorflow::Session* session,
                      const float chi2) const;
+                     
+                     
+  std::vector<float> computeDNNs(TrackCandidateCollection tkCC,
+                     const reco::BeamSpot& bs,
+                     const reco::VertexCollection* vertices,
+                     const MagneticField& theMF,
+                     const TransientTrackingRecHitBuilder& theTTRHBuilder,
+                     const tensorflow::Session* session,
+                     const float chi2) const;
 
   const edm::EDGetTokenT<MkFitEventOfHits> eventOfHitsToken_;
   const edm::EDGetTokenT<MkFitClusterIndexToHit> pixelClusterIndexToHitToken_;
@@ -267,6 +276,7 @@ TrackCandidateCollection MkFitOutputConverter::convertCandidates(const MkFitOutp
 
   LogTrace("MkFitOutputConverter") << "Number of candidates " << candidates.size();
 
+  int ccco=0;
   int candIndex = -1;
   for (const auto& cand : candidates) {
     ++candIndex;
@@ -435,11 +445,23 @@ TrackCandidateCollection MkFitOutputConverter::convertCandidates(const MkFitOutp
                                                       0,
                                                       static_cast<uint8_t>(StopReason::UNINITIALIZED));
       float disc = computeTFDNN(cmsswcand, bs, vertices, mf, theTTRHBuilder, session, cand.chi2());
+//       std::cout << disc << "  value of disc " << algo_ << " NN "<< ccco<<std::endl;
+//       ccco++;
       if (disc > algoCandWorkingPoint_) {
         output.push_back(cmsswcand);
       }
     }  //exception
   }
+//   std::cout << "dove erroe" << std::endl;
+//   std::cout << "dove erroe " <<output.size()<< std::endl;
+// // //   std::vector<float> fff;
+// // //   if(algoCandSelection_) {
+// // //     fff= computeDNNs (output, bs, vertices, mf, theTTRHBuilder, session, 1);
+// // //     for (int fi=fff.size()-1; fi>=0; fi--){
+// // //       if(fff[fi]<=algoCandWorkingPoint_)  output.erase(output.begin()+fi);
+// // //     }
+// // //   }
+//   if(algoCandSelection_) std::cout << "dove erroe " <<fff.size()<< std::endl;
   return output;
 }
 
@@ -678,6 +700,150 @@ float MkFitOutputConverter::computeTFDNN(const TrackCandidate& tkC,
   std::vector<tensorflow::Tensor> outputs;
   tensorflow::run(const_cast<tensorflow::Session*>(session), inputs, {"Identity"}, &outputs);
   float output = 2.0 * outputs[0].matrix<float>()(0, 0) - 1.0;
+  return output;
+}
+
+
+std::vector<float>MkFitOutputConverter::computeDNNs (TrackCandidateCollection tkCC,
+                                         const reco::BeamSpot& bs,
+                                         const reco::VertexCollection* vertices,
+                                         const MagneticField& theMF,
+                                         const TransientTrackingRecHitBuilder& theTTRHBuilder,
+                                         const tensorflow::Session* session,
+                                         const float chi2) const {
+  
+  
+  std::vector<float> output;
+  int size_in=(int)tkCC.size();
+  output.resize(size_in);
+  int bsize=16;
+  int nbatches=size_in/bsize;
+//   std::cout << " BSIZE " << bsize<< " INSIZE " << bsize<< " nbatches " << nbatches<< std::endl;
+  
+  TSCBLBuilderNoMaterial tscblBuilder;
+  auto const& theG = ((TkTransientTrackingRecHitBuilder const*)(&theTTRHBuilder))->geometry();
+  
+  for (auto nb=0; nb<nbatches+1; nb++){
+    
+//     std::cout << " nbatch current " << nb<< std::endl;
+  
+    
+    // tensorflow part
+    tensorflow::Tensor input1(tensorflow::DT_FLOAT, {bsize, 29});
+    tensorflow::Tensor input2(tensorflow::DT_FLOAT, {bsize, 1});
+    
+    for (auto nt=0; nt<bsize; nt++)
+    {
+      
+      int itrack=nt+bsize*nb;
+      if (itrack>=size_in) continue;
+      
+//       std::cout << " ntrack current " << itrack<< std::endl;
+//       std::cout << " ntrack modulos " << nt<< std::endl;
+
+      auto const& tkC = tkCC.at(itrack);
+      auto const& candSS = tkC.trajectoryStateOnDet();
+      TrajectoryStateOnSurface state =
+          trajectoryStateTransform::transientState(candSS, &(theG->idToDet(candSS.detId())->surface()), &theMF);
+      TrajectoryStateClosestToBeamLine tsAtClosestApproachTrackCand =
+          tscblBuilder(*state.freeState(), bs);  //as in TrackProducerAlgorithm
+
+      if (!(tsAtClosestApproachTrackCand.isValid())) {
+        edm::LogVerbatim("TrackBuilding") << "TrajectoryStateClosestToBeamLine not valid";
+        continue;
+      }
+
+      auto const& stateAtPCA = tsAtClosestApproachTrackCand.trackStateAtPCA();
+      auto v0 = stateAtPCA.position();
+      auto p = stateAtPCA.momentum();
+      math::XYZPoint pos(v0.x(), v0.y(), v0.z());
+      math::XYZVector mom(p.x(), p.y(), p.z());
+
+      //pseudo track for access to easy methods
+      reco::Track trk(0, 0, pos, mom, stateAtPCA.charge(), stateAtPCA.curvilinearError());
+
+      // get best vertex
+      float dzmin = std::numeric_limits<float>::max();
+      float dxy_zmin = 0;
+
+      for (auto const& vertex : *vertices) {
+        if (std::abs(trk.dz(vertex.position())) < dzmin) {
+          dzmin = trk.dz(vertex.position());
+          dxy_zmin = trk.dxy(vertex.position());
+        }
+      }
+
+      // loop over the RecHits
+      int ndof = 0;
+      int pix = 0;
+      int strip = 0;
+      for (auto const& recHit : tkC.recHits()) {
+        ndof += recHit.dimension();
+        auto const subdet = recHit.geographicalId().subdetId();
+        if (subdet == PixelSubdetector::PixelBarrel || subdet == PixelSubdetector::PixelEndcap)
+          pix++;
+        else
+          strip++;
+      }
+      ndof = ndof - 5;
+      
+      input1.matrix<float>()(nt, 0) = trk.pt();  //using inner track only
+      input1.matrix<float>()(nt, 1) = p.x();
+      input1.matrix<float>()(nt, 2) = p.y();
+      input1.matrix<float>()(nt, 3) = p.z();
+      input1.matrix<float>()(nt, 4) = p.perp();
+      input1.matrix<float>()(nt, 5) = p.x();
+      input1.matrix<float>()(nt, 6) = p.y();
+      input1.matrix<float>()(nt, 7) = p.z();
+      input1.matrix<float>()(nt, 8) = p.perp();
+      input1.matrix<float>()(nt, 9) = trk.ptError();
+      input1.matrix<float>()(nt, 10) = dxy_zmin;
+      input1.matrix<float>()(nt, 11) = dzmin;
+      input1.matrix<float>()(nt, 12) = trk.dxy(bs.position());
+      input1.matrix<float>()(nt, 13) = trk.dz(bs.position());
+      input1.matrix<float>()(nt, 14) = trk.dxyError();
+      input1.matrix<float>()(nt, 15) = trk.dzError();
+      input1.matrix<float>()(nt, 16) = 1.3;//chi2 / ndof;
+      input1.matrix<float>()(nt, 17) = trk.eta();
+      input1.matrix<float>()(nt, 18) = trk.phi();
+      input1.matrix<float>()(nt, 19) = trk.etaError();
+      input1.matrix<float>()(nt, 20) = trk.phiError();
+      input1.matrix<float>()(nt, 21) = pix;    //trk.hitPattern().numberOfValidPixelHits();
+      input1.matrix<float>()(nt, 22) = strip;  //trk.hitPattern().numberOfValidStripHits();
+      input1.matrix<float>()(nt, 23) = ndof;   //trk.ndof();
+      input1.matrix<float>()(nt, 24) = 0;
+      input1.matrix<float>()(nt, 25) = 0;
+      input1.matrix<float>()(nt, 26) = 0;
+      input1.matrix<float>()(nt, 27) = 0;
+      input1.matrix<float>()(nt, 28) = 0;
+
+      input2.matrix<float>()(nt, 0) = algo_;
+
+    }
+    //inputs finalized
+    tensorflow::NamedTensorList inputs;
+    inputs.resize(2);
+    inputs[0] = tensorflow::NamedTensor("x", input1);
+    inputs[1] = tensorflow::NamedTensor("y", input2);
+
+    //eval and rescale
+    std::vector<tensorflow::Tensor> outputs;
+    tensorflow::run(const_cast<tensorflow::Session*>(session), inputs, {"Identity"}, &outputs);
+    
+    for (auto nt=0; nt<bsize; nt++)
+    {        
+        int itrack=nt+bsize*nb;
+        if (itrack>=size_in) continue;
+        
+//         std::cout << " ntrack current bis " << itrack<< std::endl;
+//         std::cout << " ntrack modulos bis " << nt<< std::endl;
+        
+        float out0 = 2.0 * outputs[0].matrix<float>()(nt, 0) - 1.0;
+//         std::cout << out0 << "  value of disc " << algo_ << std::endl;
+        output[itrack]=out0;
+    }
+  }
+  
   return output;
 }
 
