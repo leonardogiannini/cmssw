@@ -70,7 +70,7 @@ public:
 public:
   constexpr static Packing packing() { return Packing(8, 9, 4, 11); }
 
-  constexpr static Packing thePacking = {11, 10, 1, 10};
+  constexpr static Packing thePacking = {11, 10, 0, 10};
 };
 
 #endif  // DataFormats_SiPixelDetId_interface_PixelChannelIdentifier_h
