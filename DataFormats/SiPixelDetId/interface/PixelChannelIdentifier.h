@@ -35,14 +35,15 @@ namespace pixelchannelidentifierimpl {
     const uint32_t column_width;
     const uint32_t adc_width;
 
-    //const uint32_t row_shift;
-    //const uint32_t column_shift;
+    const uint32_t row_shift;
+    const uint32_t column_shift;
     //const uint32_t flag_shift;
-    //const uint32_t adc_shift;
-    const int row_shift;
-    const int column_shift;
-    const int time_shift;
-    const int adc_shift;
+    const uint32_t time_shift;
+    const uint32_t adc_shift;
+    //const int row_shift;
+    //const int column_shift;
+    //const int time_shift;
+    //const int adc_shift;
 
     const PackedDigiType row_mask;
     const PackedDigiType column_mask;
