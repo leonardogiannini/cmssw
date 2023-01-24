@@ -212,7 +212,7 @@ namespace mkfit {
       max_invpt = 10.0;  // => pT>0.1 GeV
 
     // dq hit selection window
-    float this_dq = (ILC.c_dq_0) * max_invpt + (ILC.c_dq_1) * theta + (ILC.c_dq_2);
+    float this_dq = (ILC.c_dq_0[0]) * max_invpt + (ILC.c_dq_1[0]) * theta + (ILC.c_dq_2[0]);
     // In case layer is missing (e.g., seeding layers, or too low stats for training), leave original limits
     if ((ILC.c_dq_sf) * this_dq > 0.f) {
       min_dq = (ILC.c_dq_sf) * this_dq;
@@ -220,7 +220,7 @@ namespace mkfit {
     }
 
     // dphi hit selection window
-    float this_dphi = (ILC.c_dp_0) * max_invpt + (ILC.c_dp_1) * theta + (ILC.c_dp_2);
+    float this_dphi = (ILC.c_dp_0[0]) * max_invpt + (ILC.c_dp_1[0]) * theta + (ILC.c_dp_2[0]);
     // In case layer is missing (e.g., seeding layers, or too low stats for training), leave original limits
     if ((ILC.c_dp_sf) * this_dphi > min_dphi) {
       min_dphi = (ILC.c_dp_sf) * this_dphi;
@@ -251,7 +251,7 @@ namespace mkfit {
     if (invpt > 10.0)
       max_invpt = 10.0;
 
-    float this_c2 = ILC.c_c2_0 * max_invpt + ILC.c_c2_1 * theta + ILC.c_c2_2;
+    float this_c2 = ILC.c_c2_0[0] * max_invpt + ILC.c_c2_1[0] * theta + ILC.c_c2_2[0];
     // In case layer is missing (e.g., seeding layers, or too low stats for training), leave original limits
     if ((ILC.c_c2_sf) * this_c2 > minChi2Cut)
       return ILC.c_c2_sf * this_c2;
