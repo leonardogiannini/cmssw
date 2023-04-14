@@ -66,6 +66,10 @@ private:
   void addTIDGeometry(mkfit::TrackerInfo &trk_info);
   void addTECGeometry(mkfit::TrackerInfo &trk_info);
 
+  void findRZBox(const GlobalPoint &gp, float &rmin, float &rmax, float &zmin, float &zmax);
+  void aggregateMaterialInfo(mkfit::TrackerInfo &trk_info);
+  std::vector<std::tuple<float, float, float>> material_histogram[300][120]; 
+
   edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> geomToken_;
   edm::ESGetToken<TrackerTopology, TrackerTopologyRcd> ttopoToken_;
   edm::ESGetToken<GeometricSearchTracker, TrackerRecoGeometryRecord> trackerToken_;
@@ -238,11 +242,14 @@ void MkFitGeometryESProducer::fillShapeAndPlacement(const GeomDet *det,
   if (lgc_map) {
     (*lgc_map)[lay].reset_current();
   }
+  float zbox_min=1000, zbox_max=0, rbox_min=1000, rbox_max=0;
   for (int i = 0; i < 4; ++i) {
     Local3DPoint lp1(xy[i][0], xy[i][1], -dz);
     Local3DPoint lp2(xy[i][0], xy[i][1], dz);
     GlobalPoint gp1 = det->surface().toGlobal(lp1);
     GlobalPoint gp2 = det->surface().toGlobal(lp2);
+    findRZBox(gp1, rbox_min, rbox_max, zbox_min, zbox_max);
+    findRZBox(gp2, rbox_min, rbox_max, zbox_min, zbox_max);
     considerPoint(gp1, layer_info);
     considerPoint(gp2, layer_info);
     if (lgc_map) {
@@ -262,6 +269,24 @@ void MkFitGeometryESProducer::fillShapeAndPlacement(const GeomDet *det,
   layer_info.set_subdet(detid.subdetId());
   layer_info.set_is_pixel(detid.subdetId() <= 2);
   layer_info.set_is_stereo(trackerTopo_->isStereo(detid));
+   
+  //module material
+  float bbxi =  det->surface().mediumProperties().xi();
+  float radL =  det->surface().mediumProperties().radLen();
+  
+  //loop over bins to fill "histogram" with bbxi, radL and their weight, which the overlap surface in r-z with the cmsquare of a bin
+  for(unsigned int i=0; i<300; i++)
+  {
+     for(unsigned int j=0; j<120; j++)
+     {
+        float iF=i, jF=j;
+        float overlap=std::max(0.f, std::min(jF+1, rbox_max) - std::max(jF, rbox_min)) * std::max(0.f, std::min(iF+1, zbox_max) - std::max(iF, zbox_min));
+        if (overlap>0) material_histogram[i][j].push_back(std::make_tuple(overlap,bbxi,radL)); 
+        //if (overlap>0) { std::cout << " i " << i <<" j "<< j <<" overlap "<< overlap << std::endl; }
+     }
+  }
+
+
 }
 
 //==============================================================================
@@ -346,6 +371,45 @@ void MkFitGeometryESProducer::addTECGeometry(mkfit::TrackerInfo &trk_info) {
   edm::LogVerbatim("MkFitGeometryESProducer") << ostr.str();
 }
 
+void MkFitGeometryESProducer::findRZBox(const GlobalPoint &gp, float &rmin, float &rmax, float &zmin, float &zmax) {
+  // Use radius squared during bounding-region search.
+  // perp is the correct r (?) 
+  float r = gp.perp(), z = gp.z();
+  if (std::fabs(r)>rmax) rmax=std::fabs(r);
+  if (std::fabs(r)<rmin) rmin=std::fabs(r);
+  if (std::fabs(z)>zmax) zmax=std::fabs(z);
+  if (std::fabs(z)<zmin) zmin=std::fabs(z);
+}
+
+void MkFitGeometryESProducer::aggregateMaterialInfo(mkfit::TrackerInfo &trk_info) {
+  //from histogram (vector of tuples) to grid
+  for(unsigned int i=0; i<300; i++)
+  {  
+     for(unsigned int j=0; j<120; j++)
+     {
+        float materialXi = 0;
+        float materialRadl = 0;
+        float sumW = 0;
+        for(auto tuple : material_histogram[i][j])
+          { 
+            materialXi+=std::get<0>(tuple)*std::get<1>(tuple);
+            materialRadl+=std::get<0>(tuple)*std::get<2>(tuple);
+            sumW+=std::get<0>(tuple);
+          }
+        if(sumW>0) {
+           trk_info.material_bbxi[i][j]=materialXi/sumW;
+           trk_info.material_radl[i][j]=materialRadl/sumW;
+        }
+        else {
+           trk_info.material_bbxi[i][j]=0;
+           trk_info.material_radl[i][j]=0;
+        }
+      //std::cout << "aggregated" <<" i "<<i<<" j "<<j<<" Xi "<< trk_info.material_bbxi[i][j] <<  " rL " << trk_info.material_radl[i][j] << std::endl; 
+     }
+  }
+}
+
+
 //------------------------------------------------------------------------------
 // clang-format off
 namespace {
@@ -423,6 +487,10 @@ std::unique_ptr<MkFitGeometry> MkFitGeometryESProducer::produce(const TrackerRec
     assert(maxsid < 1u << 13);
     assert(n_mod > 0);
   }
+  
+  //material grid
+  aggregateMaterialInfo(*trackerInfo);  
+  
 #ifdef DUMP_MKF_GEO
   printf("Total number of modules %u, 14-bits fit up to %u modules\n", n_mod, 1u << 13);
 #endif

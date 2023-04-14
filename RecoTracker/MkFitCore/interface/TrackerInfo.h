@@ -176,6 +176,12 @@ namespace mkfit {
     void read_bin_file(const std::string& fname);
     void print_tracker(int level) const;
 
+    //material grid array
+    //decide if public or private
+    //300 and 120 should be configurable    
+    float material_bbxi[300][120];
+    float material_radl[300][120];
+
   private:
     int new_layer(LayerInfo::LayerType_e type);
 
