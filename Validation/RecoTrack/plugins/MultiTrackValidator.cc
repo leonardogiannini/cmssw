@@ -34,7 +34,9 @@
 #include <TF1.h>
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/PtEtaPhiMass.h"
-//#include <iostream>
+// #include <string>
+// #include <iostream>
+// #include <mutex>
 
 using namespace std;
 using namespace edm;
@@ -44,6 +46,13 @@ namespace {
   bool trackSelected(unsigned char mask, unsigned char qual) { return mask & 1 << qual; }
 
 }  // namespace
+
+// int global_rt_ = 0;
+// int global_at_ = 0;
+// int global_st_ = 0;
+// int global_dt_ = 0;
+// int global_ast_ = 0;
+// std::mutex mu;
 
 MultiTrackValidator::MultiTrackValidator(const edm::ParameterSet& pset)
     : tTopoEsToken(esConsumes()),
@@ -222,7 +231,15 @@ MultiTrackValidator::MultiTrackValidator(const edm::ParameterSet& pset)
   }
 }
 
-MultiTrackValidator::~MultiTrackValidator() {}
+MultiTrackValidator::~MultiTrackValidator() {
+  // std::cerr << "Collection " << "pixelTracks" << "\n"
+  //           << "Total Simulated (selected): " << global_st_ << "\n"
+  //           << "Total Reconstructed: " << global_rt_ << "\n"
+  //           << "Total Associated (recoToSim): " << global_at_ << "\n"
+  //           << "Total Fakes: " << global_rt_ - global_at_ << "\n"
+  //           << "Total Associated (simToReco): " << global_ast_ << "\n"
+  //           << "Total Duplicated: " << global_dt_ << "\n";
+}
 
 void MultiTrackValidator::bookHistograms(DQMStore::IBooker& ibook,
                                          edm::Run const&,
@@ -590,6 +607,7 @@ void MultiTrackValidator::dqmAnalyze(const edm::Event& event,
 
   using namespace reco;
 
+
   LogDebug("TrackValidator") << "\n===================================================="
                              << "\n"
                              << "Analyzing new event"
@@ -871,6 +889,7 @@ void MultiTrackValidator::dqmAnalyze(const edm::Event& event,
       //
       LogTrace("TrackValidator") << "\n# of TrackingParticles: " << tPCeff.size() << "\n";
       int st(0);  //This counter counts the number of simulated tracks passing the MTV selection (i.e. tpSelector(tp) )
+      int ast = 0;
 
       //loop over already-selected TPs for tracking efficiency
       for (size_t i = 0; i < selected_tPCeff.size(); ++i) {
@@ -935,6 +954,7 @@ void MultiTrackValidator::dqmAnalyze(const edm::Event& event,
           auto const& rt = simRecColl[tpr];
           if (!rt.empty()) {
             // isRecoMatched = true; // UNUSED
+            ast++;
             matchedTrackPointer = rt.begin()->first.get();
             if (rt.size() >= 2) {
               matchedSecondTrackPointer = (rt.begin() + 1)->first.get();
@@ -1030,6 +1050,7 @@ void MultiTrackValidator::dqmAnalyze(const edm::Event& event,
 
       int at(0);  //This counter counts the number of recoTracks that are associated to SimTracks
       int rT(0);  //This counter counts the number of recoTracks in general
+      int dt = 0;
       int seed_fit_failed = 0;
       size_t n_selTrack_dr = 0;
 
@@ -1070,6 +1091,8 @@ void MultiTrackValidator::dqmAnalyze(const edm::Event& event,
             isChargeMatched = false;
           if (simRecColl.find(tp[0].first) != simRecColl.end())
             numAssocRecoTracks = simRecColl[tp[0].first].size();
+          if (numAssocRecoTracks > 1)
+            dt++;
           at++;
           for (unsigned int tp_ite = 0; tp_ite < tp.size(); ++tp_ite) {
             TrackingParticle trackpart = *(tp[tp_ite].first);
@@ -1190,12 +1213,30 @@ void MultiTrackValidator::dqmAnalyze(const edm::Event& event,
             histograms.histoProducerAlgo, www, seed_fit_failed, trackCollection.size());
       }
 
-      LogTrace("TrackValidator") << "Collection " << www << "\n"
-                                 << "Total Simulated (selected): " << n_selTP_dr << "\n"
-                                 << "Total Reconstructed (selected): " << n_selTrack_dr << "\n"
-                                 << "Total Reconstructed: " << rT << "\n"
-                                 << "Total Associated (recoToSim): " << at << "\n"
-                                 << "Total Fakes: " << rT - at << "\n";
+      // if (label[www].label().compare("pixelTracks") == 0) {
+      //   LogPrint("TrackValidator") << "Collection " << label[www].label() << "\n"
+      //                             << "Total Simulated (selected): " << n_selTP_dr << "\n"
+      //                             << "Total Reconstructed (selected): " << n_selTrack_dr << "\n"
+      //                             << "Total Reconstructed: " << rT << "\n"
+      //                             << "Total Associated (recoToSim): " << at << "\n"
+      //                             << "Total Fakes: " << rT - at << "\n"
+      //                             << "Total Associated (simToReco): " << ast << "\n"
+      //                             << "Total Duplicated: " << dt << "\n";
+      //   mu.lock();               
+      //   global_rt_ += rT;
+      //   global_at_ += at;
+      //   global_st_ += n_selTP_dr;
+      //   global_dt_ += dt;
+      //   global_ast_ += ast;
+      //   mu.unlock();
+      // }
     }  // End of  for (unsigned int www=0;www<label.size();www++){
   }    //END of for (unsigned int ww=0;ww<associators.size();ww++){
+  // LogPrint("TrackValidator") << "Collection " << "pixelTracks" << "\n"
+  //                         << "Total Simulated (selected): " << global_st_ << "\n"
+  //                         << "Total Reconstructed: " << global_rt_ << "\n"
+  //                         << "Total Associated (recoToSim): " << global_at_ << "\n"
+  //                         << "Total Fakes: " << global_rt_ - global_at_ << "\n"
+  //                         << "Total Associated (simToReco): " << global_ast_ << "\n"
+  //                         << "Total Duplicated: " << global_dt_ << "\n";
 }
