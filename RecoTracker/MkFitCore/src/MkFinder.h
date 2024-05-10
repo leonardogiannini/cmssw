@@ -55,7 +55,7 @@ namespace mkfit {
                const SteeringParams &sp,
                const std::vector<bool> *ihm,
                bool infwd);
-    void setup_bkfit(const PropagationConfig &pc, const SteeringParams &sp);
+    void setup_bkfit(const PropagationConfig &pc, const SteeringParams &sp, const IterationParams &ip);
     void release();
 
     //----------------------------------------------------------------------------

@@ -54,6 +54,9 @@ private:
   int global_st_ = 0;
   int global_dt_ = 0;
   int global_ast_ = 0;
+  int global_nhits_ = 0;
+  int global_nhitsa_ = 0;
+  int global_nhitss_ = 0;
 
   TrackingParticleSelector tpSelector;
   TTree* output_tree_;
@@ -163,13 +166,18 @@ void SimpleValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     int ast = 0;
     int dt = 0;
     int st = selectedTPCollection.size();
+    int nhits = 0;
+    int nhitsA = 0;
+    int nhitsS = 0;
     for (const auto& track : trackRefs) {
       rt++;
+      nhits+=track->found();//numberOfValidHits();
       auto foundTP = recSimColl.find(track);
         if (foundTP != recSimColl.end()) {
           const auto& tp = foundTP->val;
           if (!tp.empty()) {
             at++;
+	    nhitsA+=track->found();
           }
           if (simRecColl.find(tp[0].first) != simRecColl.end()) {
             if (simRecColl[tp[0].first].size() > 1) {
@@ -181,7 +189,8 @@ void SimpleValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     for (const TrackingParticleRef& tpr : selectedTPCollection) {
       auto foundTrack = simRecColl.find(tpr);
       if (foundTrack != simRecColl.end() && !simRecColl[tpr].empty()) {
-          ast++;	      
+          ast++;
+          nhitsS+=tpr->numberOfTrackerHits();	  
       }
     }
     // if (trackLabels_[0].label().compare("pixelTracks0") == 0) {
@@ -198,6 +207,9 @@ void SimpleValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     global_at_ += at;
     global_dt_ += dt;
     global_ast_ += ast;
+    global_nhits_ += nhits;
+    global_nhitsa_ += nhitsA; 
+    global_nhitss_ += nhitsS;
   }
 }
 
@@ -205,13 +217,16 @@ void SimpleValidation::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 void SimpleValidation::beginJob() {
   // please remove this method if not needed
   edm::Service<TFileService> fs;
-  output_tree_ = fs->make<TTree>("output", "putput params");
+  output_tree_ = fs->make<TTree>("output", "output params");
 
   output_tree_->Branch("rt", &global_rt_);
   output_tree_->Branch("at", &global_at_);
   output_tree_->Branch("st", &global_st_);
   output_tree_->Branch("dt", &global_dt_);
   output_tree_->Branch("ast", &global_ast_);
+  output_tree_->Branch("nhits", &global_nhits_);
+  output_tree_->Branch("nhitsa", &global_nhitsa_);
+  output_tree_->Branch("nhitss", &global_nhitss_);
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

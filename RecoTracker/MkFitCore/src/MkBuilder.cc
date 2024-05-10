@@ -611,7 +611,7 @@ namespace mkfit {
     m_event_of_comb_cands.reset((int)in_seeds.size(), m_job->max_max_cands());
 
     import_seeds(in_seeds, seeds_sorted, [&](const Track &seed, int region, int pos) {
-      m_event_of_comb_cands.insertSeed(seed, m_job->steering_params(region).m_track_scorer, region, pos);
+      m_event_of_comb_cands.insertSeed(seed, m_job->m_iter_config.m_params, m_job->steering_params(region).m_track_scorer, region, pos);
     });
   }
 
@@ -1280,7 +1280,7 @@ namespace mkfit {
     EventOfCombCandidates &eoccs = m_event_of_comb_cands;
     const SteeringParams &st_par = m_job->steering_params(region);
     const PropagationConfig &prop_config = m_job->m_trk_info.prop_config();
-    mkfndr->setup_bkfit(prop_config, st_par);
+    mkfndr->setup_bkfit(prop_config, st_par, m_job->m_iter_config.m_params);
 
     int step = NN;
     for (int icand = start_cand; icand < end_cand; icand += step) {
