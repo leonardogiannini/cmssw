@@ -47,10 +47,12 @@ namespace mkfit {
     m_in_fwd = infwd;
   }
 
-  void MkFinder::setup_bkfit(const PropagationConfig &pc, const SteeringParams &sp, const Event *ev) {
+  void MkFinder::setup_bkfit(const PropagationConfig &pc, const SteeringParams &sp, const Event *ev, const IterationParams &ip) {
     m_prop_config = &pc;
     m_steering_params = &sp;
+    m_iteration_params = &ip;
     m_event = ev;
+
   }
 
   void MkFinder::release() {
@@ -1464,6 +1466,7 @@ namespace mkfit {
                 newcand.setCharge(tmpChg(itrack, 0, 0));
                 newcand.addHitIdx(hit_idx, layer_of_hits.layer_id(), chi2);
                 newcand.setScore(getScoreCand(m_steering_params->m_track_scorer,
+					      *m_iteration_params,
                                               newcand,
                                               true /*penalizeTailMissHits*/,
                                               true /*inFindCandidates*/));
@@ -1524,7 +1527,7 @@ namespace mkfit {
       copy_out(newcand, itrack, iP);
       newcand.addHitIdx(fake_hit_idx, layer_of_hits.layer_id(), 0.);
       newcand.setScore(getScoreCand(
-          m_steering_params->m_track_scorer, newcand, true /*penalizeTailMissHits*/, true /*inFindCandidates*/));
+          m_steering_params->m_track_scorer, *m_iteration_params, newcand, true /*penalizeTailMissHits*/, true /*inFindCandidates*/));
       // Only relevant when we actually add a hit
       // newcand.setOriginIndex(m_CandIdx(itrack, 0, 0));
       tmp_candidates[m_SeedIdx(itrack, 0, 0) - offset].emplace_back(newcand);
@@ -1686,7 +1689,7 @@ namespace mkfit {
               tmpList.pt = std::abs(1.0f / m_Par[iP].At(itrack, 3, 0));
               tmpList.chi2 = m_Chi2(itrack, 0, 0) + chi2;
               tmpList.chi2_hit = chi2;
-              tmpList.score = getScoreStruct(m_steering_params->m_track_scorer, tmpList);
+              tmpList.score = getScoreStruct(m_steering_params->m_track_scorer, *m_iteration_params, tmpList);
               cloner.add_cand(m_SeedIdx(itrack, 0, 0) - offset, tmpList);
 
               dprint("  adding hit with hit_cnt=" << hit_cnt << " for trkIdx=" << tmpList.trkIdx
@@ -1745,7 +1748,7 @@ namespace mkfit {
       tmpList.pt = std::abs(1.0f / m_Par[iP].At(itrack, 3, 0));
       tmpList.chi2 = m_Chi2(itrack, 0, 0);
       tmpList.chi2_hit = 0;
-      tmpList.score = getScoreStruct(m_steering_params->m_track_scorer, tmpList);
+      tmpList.score = getScoreStruct(m_steering_params->m_track_scorer, *m_iteration_params, tmpList);
       cloner.add_cand(m_SeedIdx(itrack, 0, 0) - offset, tmpList);
       dprint("adding invalid hit " << fake_hit_idx);
     }
@@ -1918,7 +1921,7 @@ namespace mkfit {
 
       trk.setChi2(m_Chi2(itrack, 0, 0));
       if (isFinite(trk.chi2())) {
-        trk.setScore(getScoreCand(m_steering_params->m_track_scorer, trk));
+        trk.setScore(getScoreCand(m_steering_params->m_track_scorer, *m_iteration_params, trk));
       }
     }
   }
@@ -1939,7 +1942,7 @@ namespace mkfit {
 
       trk.setChi2(m_Chi2(itrack, 0, 0));
       if (isFinite(trk.chi2())) {
-        trk.setScore(getScoreCand(m_steering_params->m_track_scorer, trk));
+        trk.setScore(getScoreCand(m_steering_params->m_track_scorer, *m_iteration_params, trk));
       }
     }
   }
