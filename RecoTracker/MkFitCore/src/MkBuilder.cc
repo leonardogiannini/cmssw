@@ -1021,6 +1021,8 @@ namespace mkfit {
 
     auto &iter_params = (iteration_dir == SteeringParams::IT_BkwSearch) ? m_job->m_iter_config.m_backward_params
                                                                         : m_job->m_iter_config.m_params;
+    
+    auto &m_iteration_params = m_job->m_iter_config.m_params;
 
     // Loop over layers according to plan.
     while (++layer_plan_it) {
@@ -1170,10 +1172,10 @@ namespace mkfit {
           auto chi2Ovlp = mkfndr->m_Chi2[fi];
           if (mkfndr->m_FailFlag[fi] == 0 && chi2Ovlp >= 0.0f && chi2Ovlp <= 60.0f) {
             auto scoreCand =
-                getScoreCand(st_par.m_track_scorer, tc, true /*penalizeTailMissHits*/, true /*inFindCandidates*/);
+                getScoreCand(st_par.m_track_scorer, m_iteration_params, tc, true /*penalizeTailMissHits*/, true /*inFindCandidates*/);
             tc.addHitIdx(seed_cand_overlap_idx[ii].ovlp_idx, curr_layer, chi2Ovlp);
             tc.incOverlapCount();
-            auto scoreCandOvlp = getScoreCand(st_par.m_track_scorer, tc, true, true);
+            auto scoreCandOvlp = getScoreCand(st_par.m_track_scorer, m_iteration_params, tc, true, true);
             if (scoreCand > scoreCandOvlp)
               tc.popOverlap();
           }
@@ -1249,7 +1251,7 @@ namespace mkfit {
   void MkBuilder::fit_cands_BH(MkFinder *mkfndr, int start_cand, int end_cand, int region) {
     const SteeringParams &st_par = m_job->steering_params(region);
     const PropagationConfig &prop_config = m_job->m_trk_info.prop_config();
-    mkfndr->setup_bkfit(prop_config, st_par, m_event);
+    mkfndr->setup_bkfit(prop_config, st_par, m_event, m_job->m_iter_config.m_params);
 #ifdef DEBUG_FINAL_FIT
     EventOfCombCandidates &eoccs = m_event_of_comb_cands;
     bool debug = true;
