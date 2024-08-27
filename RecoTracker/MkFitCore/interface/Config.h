@@ -50,7 +50,9 @@ namespace mkfit {
     constexpr int Niter = 5;
     constexpr bool useTrigApprox = true;
     constexpr bool usePropToPlane = true;
-    constexpr bool usePtMultScat = false;
+    constexpr bool usePtMultScat = true;
+    //constexpr bool usePropToPlane = false;
+    //constexpr bool usePtMultScat = false;
 
     // Config for Bfield. Note: for now the same for CMS-phase1 and CylCowWLids.
     constexpr float Bfield = 3.8112;
