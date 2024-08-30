@@ -564,6 +564,18 @@ namespace mkfit {
 
         builder.export_tracks(ev.fitTracks_);
       }
+
+//       ev.print_tracks(ev.candidateTracks_, true);
+      //fit code testing
+//       std::cout << builder.ref_tracks_nc().size() << " how many fit tracks are here " << std::endl;
+//       double timef = dtime();
+//       builder.fittracks();
+//       timevec[it] += (dtime() - timef);
+//       timevec[n] += timevec[it];
+
+      //builder.export_tracks(ev.fitTracks_);
+      //if I wanted to check the new tracks and how they look like
+
       ev.resetCurrentSeedTracks();
 
       builder.end_event();

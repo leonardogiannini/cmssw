@@ -11,6 +11,9 @@
 //#define DEBUG
 #include "Debug.h"
 
+#define DEBUG_FIT
+#define DEBUG_FIT_BKW
+
 #if defined(MKFIT_STANDALONE)
 #include "RecoTracker/MkFitCore/standalone/Event.h"
 #endif
@@ -1398,7 +1401,7 @@ namespace mkfit {
                                            m_Chg,
                                            m_msErr,
                                            m_msPar,
-      				                             norm,
+                                           norm,
                                            dir,
                                            pnt,
                                            outChi2,
@@ -1406,7 +1409,7 @@ namespace mkfit {
                                            m_FailFlag,
                                            N_proc,
                                            m_prop_config->finding_intra_layer_pflags,
-      				     m_prop_config->finding_requires_propagation_to_hit_pos);
+                                           m_prop_config->finding_requires_propagation_to_hit_pos);
       } else {
         (*fnd_foos.m_compute_chi2_foo)(m_Err[iP],
                                        m_Par[iP],
@@ -1954,6 +1957,73 @@ namespace mkfit {
     m_Err[iC].scale(100.0f);
   }
 
+
+  void MkFinder::fwdFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end) {
+    // Uses HitOnTrack vector from Track directly + a local cursor array to current hit.
+
+    MatriplexTrackPacker mtp(&cands[inds[beg]]);
+
+    int itrack = 0;
+
+    for (int i = beg; i < end; ++i, ++itrack) {
+      const Track &trk = cands[inds[i]];
+
+      m_Chg(itrack, 0, 0) = trk.charge();
+      m_CurHit[itrack] = trk.nTotalHits() - 1; //I have to use in reverse... otherwise n hits unknown
+      m_HoTArr[itrack] = trk.getHitsOnTrackArray();
+#ifdef DEBUG_FIT
+      std::cout <<"trk pt " <<trk.pT() << " trk eta " << trk.momEta() << std::endl;
+      std::cout <<"trk nTotalHits " <<trk.nTotalHits() << " trk nFoundHits " << trk.nFoundHits() << std::endl;
+#endif
+      //int endhit = m_CurHit[itrack];
+      //while (endhit >= 0){
+      //  std::cout << "DEBUG INPUT local index " << m_CurHit[itrack] << " " << endhit <<std::endl;
+      //  endhit--;
+      //}
+
+      mtp.addInput(trk);
+    }
+
+    m_Chi2.setVal(0);
+
+    mtp.pack(m_Err[iC], m_Par[iC]);
+
+    m_Err[iC].scale(100.0f);
+  }
+
+  void MkFinder::bkReFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end) {
+    // Uses HitOnTrack vector from Track directly + a local cursor array to current hit.
+#ifdef DEBUG_FIT_BKW
+    std::cout <<" -- bkReFitInputTracks " << std::endl;
+#endif
+    MatriplexTrackPacker mtp(&cands[inds[beg]]);
+
+    int itrack = 0;
+
+    for (int i = beg; i < end; ++i, ++itrack) {
+      const Track &trk = cands[inds[i]];
+
+      m_Chg(itrack, 0, 0) = trk.charge();
+      m_CurHit[itrack] = trk.nTotalHits() - 1;
+      m_HoTArr[itrack] = trk.getHitsOnTrackArray();
+#ifdef DEBUG_FIT_BKW
+      std::cout <<"trk pt " <<trk.pT() << " trk eta " << trk.momEta() << std::endl;
+      std::cout <<"trk nTotalHits " <<trk.nTotalHits() << " trk nFoundHits " << trk.nFoundHits() << std::endl;
+#endif
+      mtp.addInput(trk);
+    }
+
+    m_Chi2.setVal(0);
+
+    int index;
+    if (cands[inds[beg]].nFoundHits()%2==0)  index=iC;
+    else index = iP;
+
+    mtp.pack(m_Err[index], m_Par[index]);
+
+    m_Err[index].scale(100.0f);
+  }
+
   void MkFinder::bkFitInputTracks(EventOfCombCandidates &eocss, int beg, int end) {
     // Could as well use HotArrays from tracks directly + a local cursor array to last hit.
 
@@ -2003,6 +2073,32 @@ namespace mkfit {
       if (isFinite(trk.chi2())) {
         trk.setScore(getScoreCand(m_steering_params->m_track_scorer, trk));
       }
+    }
+  }
+
+  void MkFinder::fwdFitOutputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end, int nFoundHits, bool bkw) {
+    // Only copy out track params / errors / chi2, all the rest is ok.
+
+    if(bkw) nFoundHits=nFoundHits*2;
+
+    int iO;
+    if (nFoundHits%2==0) iO = iC;
+    else iO = iP;
+
+    int itrack = 0;
+    for (int i = beg; i < end; ++i, ++itrack) {
+      Track &trk = cands[inds[i]];
+
+      std::cout << " IN fwdFitOutputTracks " << m_Chi2(itrack, 0, 0) << " itrack " << itrack << std::endl;
+      std::cout << " check track parameters x=" << m_Par[iO].constAt(itrack, 0, 0) << " y=" << m_Par[iO].constAt(itrack, 1, 0) <<" z=" << m_Par[iO].constAt(itrack, 2, 0) << std::endl;
+
+      m_Err[iO].copyOut(itrack, trk.errors_nc().Array());
+      m_Par[iO].copyOut(itrack, trk.parameters_nc().Array());
+
+      trk.setChi2(m_Chi2(itrack, 0, 0));
+
+      std::cout << " IN fwdFitOutputTracks after " << trk.chi2() << " itrack " << itrack << std::endl;
+
     }
   }
 
@@ -2413,6 +2509,316 @@ namespace mkfit {
       m_Chi2.add(tmp_chi2);
     }
   }
+
+
+void MkFinder::fwdFitFitTracks(const EventOfHits &eventofhits,
+                                const int N_proc, int nFoundHits,
+                                bool chiDebug) {
+
+    MPlexQF outChi2;
+    MPlexLV propPar;
+
+    MPlexHV norm, dir, pnt;
+
+    MPlexQI no_mat_effs;
+
+    no_mat_effs.setVal(0);
+#ifdef DEBUG_FIT
+    const int DSLOT = 0;
+    printf("fit entry, track in slot %d\n", DSLOT);
+    print_par_err(iC, DSLOT);
+    print_par_err(iC, 1);
+    printf("\ninitial fit , track in slot %d --- (%g, %g, %g)\n",
+             DSLOT,
+             m_msPar(DSLOT, 0, 0),
+             m_msPar(DSLOT, 1, 0),
+             m_msPar(DSLOT, 2, 0));
+    printf("\ninitial fit , track in slot %d --- (%g, %g, %g)\n",
+             1,
+             m_msPar(1, 0, 0),
+             m_msPar(1, 1, 0),
+             m_msPar(1, 2, 0));
+    printf("\ninitial fit , track in slot %d --- (%g, %g, %g)\n",
+             2,
+             m_msPar(2, 0, 0),
+             m_msPar(2, 1, 0),
+             m_msPar(2, 2, 0));
+#endif
+
+    std::vector<int> tothits;
+    for (int i = 0; i < N_proc; ++i) //loop over tracks in group
+    {
+      tothits.push_back(m_CurHit[i]); //before modifications
+    }
+
+    int i1 = iC;//local copy
+    int i2 = iP;//local copy
+
+    for (int h = 0; h<nFoundHits; ++h)//first loop over the group - need to use the mplex here
+    {
+#ifdef DEBUG_FIT
+      std::cout << "MY HIT " << h << " nFoundHits "<< nFoundHits<<std::endl;
+#endif
+      for (int i = 0; i < N_proc; ++i) //loop over tracks in group
+      {
+
+      int toth = tothits[i];
+#ifdef DEBUG_FIT
+      std::cout << " n proc loop " << i << std::endl;
+      std::cout << "DEBUG 0 " << toth-m_CurHit[i] <<std::endl;
+      std::cout << "DEBUG 0 layer " << m_HoTArr[i][toth-m_CurHit[i]].layer << std::endl;
+      std::cout << "DEBUG 0 index " << m_HoTArr[i][toth-m_CurHit[i]].index <<std::endl;
+#endif
+      bool hitValid=false;
+
+      while (!hitValid && m_CurHit[i]>=0){
+#ifdef DEBUG_FIT
+        std::cout << "DEBUG i " << toth-m_CurHit[i] <<std::endl;
+        std::cout << "DEBUG i layer " << m_HoTArr[i][toth-m_CurHit[i]].layer << std::endl;
+        std::cout << "DEBUG i index " << m_HoTArr[i][toth-m_CurHit[i]].index <<std::endl;
+#endif
+        if(m_HoTArr[i][toth-m_CurHit[i]].index>=0)
+        {
+          const LayerOfHits &L = eventofhits[m_HoTArr[i][toth-m_CurHit[i]].layer];
+          const Hit &hit = L.refHit(m_HoTArr[i][toth-m_CurHit[i]].index);
+#ifdef DEBUG_FIT
+          std::cout << "m_msPar " << m_msPar(i, 0, 0) << std::endl;
+#endif
+          m_msErr.copyIn(i, hit.errArray());
+          m_msPar.copyIn(i, hit.posArray());
+#ifdef DEBUG_FIT
+          std::cout << "hit.posArray()[0] " << hit.posArray()[0] << " hit.posArray()[1] " << hit.posArray()[1] << " hit.posArray()[2] " << hit.posArray()[2] << std::endl;
+          std::cout << "m_msPar " << m_msPar(i, 0, 0) << std::endl;
+#endif
+          unsigned int mid = hit.detIDinLayer();
+          const ModuleInfo &mi = L.layer_info().module_info(mid);
+          norm.At(i, 0, 0) = mi.zdir[0];
+          norm.At(i, 1, 0) = mi.zdir[1];
+          norm.At(i, 2, 0) = mi.zdir[2];
+          dir.At(i, 0, 0) = mi.xdir[0];
+          dir.At(i, 1, 0) = mi.xdir[1];
+          dir.At(i, 2, 0) = mi.xdir[2];
+          pnt.At(i, 0, 0) = mi.pos[0];
+          pnt.At(i, 1, 0) = mi.pos[1];
+          pnt.At(i, 2, 0) = mi.pos[2];
+#ifdef DEBUG_FIT
+          std::cout << "mi.pos[0] " << mi.pos[0] << " mi.pos[1] " << mi.pos[1] << " mi.pos[2] " << mi.pos[2] << std::endl;
+          std::cout << "pnt[0] " << pnt(i, 0, 0) << " pnt[1] " << pnt(i, 1, 0) << " pnt[2] " << pnt(i, 2, 0) << std::endl;
+#endif
+          hitValid=true;
+          m_CurHit[i]--;
+
+
+        }
+        else{m_CurHit[i]--;}// std::cout << "pass index"<<std::endl;}//??do something else for negative index
+
+
+      }// end of hit per track
+    }//end of track by track loop
+
+//     std::cout << "kalmanPropagateAndComputeChi2Plane" << std::endl;
+//     kalmanPropagateAndComputeChi2Plane(m_Err[iP],
+//                                     m_Par[iP],
+//                                     m_Chg,
+//                                     m_msErr,
+//                                     m_msPar,
+//                                     norm,
+//                                     dir,
+//                                     pnt,
+//                                     outChi2,
+//                                     propPar,
+//                                     m_FailFlag,
+//                                     N_proc,
+//                                     m_prop_config->finding_intra_layer_pflags,
+//                                     m_prop_config->finding_requires_propagation_to_hit_pos);
+#ifdef DEBUG_FIT
+      for (int i = 0; i < N_proc; ++i) //loop over tracks in group
+      {
+        std::cout << "right before propagation at hit " << h << " index NP "<< i+1 <<"/"<<N_proc << std::endl;
+        std::cout <<"update parameters" << std::endl;
+        std::cout << "propagated track parameters x=" << m_Par[i1].constAt(i, 0, 0) << " y=" << m_Par[i1].constAt(i, 1, 0) <<" z=" << m_Par[i1].constAt(i, 2, 0) << std::endl;
+        std::cout << "               hit position x=" << m_msPar.constAt(i, 0, 0)  << " y=" << m_msPar.constAt(i, 1, 0) <<" z=" << m_msPar.constAt(i, 2, 0) << std::endl;
+        std::cout << "tmp_chi2[i]" << outChi2[i] << std::endl;
+
+      }
+#endif
+      kalmanPropagateAndUpdatePlane(m_Err[i1],
+                                   m_Par[i1],
+                                   m_Chg,
+                                   m_msErr,
+                                   m_msPar,
+                                   norm, dir, pnt,
+                                   m_Err[i2],
+                                   m_Par[i2],
+                                   m_FailFlag,
+                                   N_proc,
+                                   m_prop_config->finding_inter_layer_pflags,
+                                   m_prop_config->finding_requires_propagation_to_hit_pos);
+       kalmanComputeChi2Plane(m_Err[i2],
+                              m_Par[i2],
+                              m_Chg,
+                              m_msErr,
+                              m_msPar,
+                              norm, dir, pnt,
+                              outChi2,
+                              N_proc);
+
+#ifdef DEBUG_FIT
+      std::cout <<" i1 "<< i1  <<" iP "<< iP  <<" iC "<< iC << std::endl;
+
+      std::cout << "++++++++++++++++++++++++++\n" << std::endl;
+      for (int i = 0; i < N_proc; ++i) //loop over tracks in group
+      {
+        std::cout << "right after propagation at hit " << h << " index NP "<< i+1 <<"/"<< N_proc <<std::endl;
+        std::cout <<"update parameters" << std::endl;
+        std::cout << "propagated track parameters x=" << m_Par[i1].constAt(i, 0, 0) << " y=" << m_Par[i1].constAt(i, 1, 0) <<" z=" << m_Par[i1].constAt(i, 2, 0) << std::endl;
+        std::cout << "               hit position x=" << m_msPar.constAt(i, 0, 0) << " y=" << m_msPar.constAt(i, 1, 0) << " z=" << m_msPar.constAt(i, 2, 0) << std::endl;
+        std::cout << "   updated track parameters x=" << m_Par[i2].constAt(i, 0, 0) << " y=" << m_Par[i2].constAt(i, 1, 0) <<" z=" << m_Par[i2].constAt(i, 2, 0) << std::endl;
+        std::cout << "tmp_chi2[i]" << outChi2[i] << std::endl;
+
+      }
+#endif
+      std::swap(i1,i2);
+
+      // update chi2
+      m_Chi2.add(outChi2);
+    }//end of loop over n hits
+  }//end of fit func
+
+
+void MkFinder::bkReFitFitTracks(const EventOfHits &eventofhits,
+                                const int N_proc, int nFoundHits,
+                                bool chiDebug) {
+#ifdef DEBUG_FIT_BKW
+   std::cout << "bkReFitFitTracks "<< nFoundHits<<std::endl;
+#endif
+    MPlexQF outChi2;
+    MPlexLV propPar;
+
+    MPlexHV norm, dir, pnt;
+
+    MPlexQI no_mat_effs;
+
+    no_mat_effs.setVal(0);
+
+    int i1, i2;
+    if (nFoundHits%2==0){i1 = iC; i2 = iP;}
+    else {i1 = iP; i2 = iC;}
+
+    for (int h = 0; h<nFoundHits; ++h)//first loop over the group - need to use the mplex here
+    {
+#ifdef DEBUG_FIT_BKW
+      std::cout << "MY HIT " << h << " nFoundHits "<< nFoundHits<<std::endl;
+#endif
+      for (int i = 0; i < N_proc; ++i) //loop over tracks in group
+      {
+#ifdef DEBUG_FIT_BKW
+      std::cout << " n proc loop " << i << std::endl;
+      std::cout << "DEBUG 0 " << m_CurHit[i] <<std::endl;
+      std::cout << "DEBUG 0 layer " << m_HoTArr[i][m_CurHit[i]].layer << std::endl;
+      std::cout << "DEBUG 0 index " << m_HoTArr[i][m_CurHit[i]].index <<std::endl;
+#endif
+      bool hitValid=false;
+
+      while (!hitValid && m_CurHit[i]>=0){
+#ifdef DEBUG_FIT_BKW
+        std::cout << "DEBUG i " << m_CurHit[i] <<std::endl;
+        std::cout << "DEBUG i layer " << m_HoTArr[i][m_CurHit[i]].layer << std::endl;
+        std::cout << "DEBUG i index " << m_HoTArr[i][m_CurHit[i]].index <<std::endl;
+#endif
+        if(m_HoTArr[i][m_CurHit[i]].index>=0)
+        {
+          const LayerOfHits &L = eventofhits[m_HoTArr[i][m_CurHit[i]].layer];
+          const Hit &hit = L.refHit(m_HoTArr[i][m_CurHit[i]].index);
+#ifdef DEBUG_FIT_BKW
+          std::cout << "m_msPar " << m_msPar(i, 0, 0) << std::endl;
+#endif
+          m_msErr.copyIn(i, hit.errArray());
+          m_msPar.copyIn(i, hit.posArray());
+#ifdef DEBUG_FIT_BKW
+          std::cout << "hit.posArray()[0] " << hit.posArray()[0] << " hit.posArray()[1] " << hit.posArray()[1] << " hit.posArray()[2] " << hit.posArray()[2] << std::endl;
+          std::cout << "m_msPar " << m_msPar(i, 0, 0) << std::endl;
+#endif
+          unsigned int mid = hit.detIDinLayer();
+          const ModuleInfo &mi = L.layer_info().module_info(mid);
+          norm.At(i, 0, 0) = mi.zdir[0];
+          norm.At(i, 1, 0) = mi.zdir[1];
+          norm.At(i, 2, 0) = mi.zdir[2];
+          dir.At(i, 0, 0) = mi.xdir[0];
+          dir.At(i, 1, 0) = mi.xdir[1];
+          dir.At(i, 2, 0) = mi.xdir[2];
+          pnt.At(i, 0, 0) = mi.pos[0];
+          pnt.At(i, 1, 0) = mi.pos[1];
+          pnt.At(i, 2, 0) = mi.pos[2];
+#ifdef DEBUG_FIT_BKW
+          std::cout << "mi.pos[0] " << mi.pos[0] << " mi.pos[1] " << mi.pos[1] << " mi.pos[2] " << mi.pos[2] << std::endl;
+          std::cout << "pnt[0] " << pnt(i, 0, 0) << " pnt[1] " << pnt(i, 1, 0) << " pnt[2] " << pnt(i, 2, 0) << std::endl;
+#endif
+          hitValid=true;
+          m_CurHit[i]--;
+
+
+        }
+        else{m_CurHit[i]--;}// std::cout << "pass index"<<std::endl;}//??do something else for negative index
+
+
+      }// end of hit per track
+    }//end of track by track loop
+
+#ifdef DEBUG_FIT_BKW
+      for (int i = 0; i < N_proc; ++i) //loop over tracks in group
+      {
+        std::cout << "right before propagation at hit " << h << " index NP "<< i+1 <<"/"<<N_proc << std::endl;
+        std::cout <<"update parameters" << std::endl;
+        std::cout << "propagated track parameters x=" << m_Par[i1].constAt(i, 0, 0) << " y=" << m_Par[i1].constAt(i, 1, 0) <<" z=" << m_Par[i1].constAt(i, 2, 0) << std::endl;
+        std::cout << "               hit position x=" << m_msPar.constAt(i, 0, 0) << " y=" << m_msPar.constAt(i, 1, 0) <<" z=" << m_msPar.constAt(i, 2, 0) << std::endl;
+//         std::cout << "   updated track parameters x=" << m_Par[i2].constAt(i, 0, 0) << " y=" << m_Par[i2].constAt(i, 1, 0) <<" z=" << m_Par[i2].constAt(i, 2, 0) << std::endl;
+        std::cout << "outChi2 " << outChi2[i] << std::endl;
+      }
+#endif
+      kalmanPropagateAndUpdatePlane(m_Err[i1],
+                                   m_Par[i1],
+                                   m_Chg,
+                                   m_msErr,
+                                   m_msPar,
+                                   norm, dir, pnt,
+                                   m_Err[i2],
+                                   m_Par[i2],
+                                   m_FailFlag,
+                                   N_proc,
+                                   m_prop_config->finding_inter_layer_pflags,
+                                   m_prop_config->finding_requires_propagation_to_hit_pos);
+      kalmanComputeChi2Plane(m_Err[i2],
+                              m_Par[i2],
+                              m_Chg,
+                              m_msErr,
+                              m_msPar,
+                              norm, dir, pnt,
+                              outChi2,
+                              N_proc);
+
+#ifdef DEBUG_FIT_BKW
+      std::cout <<" i1 "<< i1  <<" iP "<< iP  <<" iC "<< iC << std::endl;
+
+      std::cout << "++++++++++++++++++++++++++\n" << std::endl;
+      for (int i = 0; i < N_proc; ++i) //loop over tracks in group
+      {
+        std::cout << "right after propagation at hit " << h << " index NP "<< i+1 <<"/"<< N_proc <<std::endl;
+        std::cout <<"update parameters" << std::endl;
+        std::cout << "propagated track parameters x=" << m_Par[i1].constAt(i, 0, 0) << " y=" << m_Par[i1].constAt(i, 1, 0) <<" z=" << m_Par[i1].constAt(i, 2, 0) << std::endl;
+        std::cout << "               hit position x=" << m_msPar.constAt(i, 0, 0) << " y=" << m_msPar.constAt(i, 1, 0) << " z=" << m_msPar.constAt(i, 2, 0) << std::endl;
+        std::cout << "   updated track parameters x=" << m_Par[i2].constAt(i, 0, 0) << " y=" << m_Par[i2].constAt(i, 1, 0) <<" z=" << m_Par[i2].constAt(i, 2, 0) << std::endl;
+        std::cout << "outChi2 " << outChi2[i] << std::endl;
+
+      }
+#endif
+      std::swap(i1,i2);
+
+      // update chi2
+      m_Chi2.add(outChi2);
+
+    }//end of loop over n hits
+  }//end of fit func
 
   //------------------------------------------------------------------------------
 

@@ -173,6 +173,18 @@ namespace mkfit {
     void bkFitPropTracksToPCA(const int N_proc);
 
     //----------------------------------------------------------------------------
+    void fwdFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end);
+    void fwdFitFitTracks(const EventOfHits &eventofhits,
+                        const int N_proc,
+			int nFoundHits,
+                        bool chiDebug = false);
+    void bkReFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end);
+    void bkReFitFitTracks(const EventOfHits &eventofhits,
+                        const int N_proc,
+                        int nFoundHits,
+                        bool chiDebug = false);
+    void fwdFitOutputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end, int nFoundHits, bool bkw=false);
+    //----------------------------------------------------------------------------
 
   private:
     void copy_in(const Track &trk, const int mslot, const int tslot) {
