@@ -560,8 +560,12 @@ namespace mkfit {
         if (itconf.m_duplicate_cleaner)
           itconf.m_duplicate_cleaner(builder.ref_tracks_nc(), itconf);
 
-        builder.export_tracks(ev.fitTracks_);
+        //          builder.export_tracks(ev.fitTracks_);
       }
+
+      builder.fittracks();
+      builder.export_tracks(ev.fitTracks_);
+
       ev.resetCurrentSeedTracks();
 
       builder.end_event();
