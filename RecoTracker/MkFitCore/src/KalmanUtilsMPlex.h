@@ -143,6 +143,22 @@ namespace mkfit {
                                      const PropagationFlags& propFlags,
                                      const bool propToHit);
 
+  void kalmanPropagateAndUpdatePlaneC(const MPlexLS& psErr,
+                                      const MPlexLV& psPar,
+                                      MPlexQI& Chg,
+                                      const MPlexHS& msErr,
+                                      const MPlexHV& msPar,
+                                      const MPlexHV& plNrm,
+                                      const MPlexHV& plDir,
+                                      const MPlexHV& plPnt,
+                                      MPlexLS& outErr,
+                                      MPlexLV& outPar,
+                                      MPlexQI& outFailFlag,
+                                      MPlexQF& outChi2,
+                                      const int N_proc,
+                                      const PropagationFlags& propFlags,
+                                      const bool propToHit);
+
   void kalmanComputeChi2Plane(const MPlexLS& psErr,
                               const MPlexLV& psPar,
                               const MPlexQI& inChg,

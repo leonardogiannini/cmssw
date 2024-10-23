@@ -171,7 +171,20 @@ namespace mkfit {
                         const int N_proc,
                         bool chiDebug = false);
 
+    void bkFitFitTracksAlternative(const EventOfHits &eventofhits,
+                                   const SteeringParams &st_par,
+                                   const int N_proc,
+                                   bool chiDebug = false);
+
     void bkFitPropTracksToPCA(const int N_proc);
+
+    //----------------------------------------------------------------------------
+
+    void fwdFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end);
+    void fwdFitFitTracks(const EventOfHits &eventofhits, const int N_proc, int nFoundHits, bool chiDebug = false);
+    void bkReFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end);
+    void bkReFitFitTracks(const EventOfHits &eventofhits, const int N_proc, int nFoundHits, bool chiDebug = false);
+    void fwdFitOutputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end, int nFoundHits, bool bkw = false);
 
     //----------------------------------------------------------------------------
 
@@ -341,6 +354,7 @@ namespace mkfit {
     const SteeringParams *m_steering_params = nullptr;
     const std::vector<bool> *m_iteration_hit_mask = nullptr;
     const Event *m_event = nullptr;
+    const PropagationFlags *my_flags = nullptr;
     int m_current_region = -1;
     bool m_in_fwd = true;
 

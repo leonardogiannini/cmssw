@@ -1,7 +1,7 @@
 #include "KalmanUtilsMPlex.h"
 #include "PropagationMPlex.h"
 
-//#define DEBUG
+// #define DEBUG
 #include "Debug.h"
 
 #include "KalmanUtilsMPlex.icc"
@@ -1310,7 +1310,12 @@ namespace mkfit {
     if (propToHit) {
       MPlexLS propErr;
       MPlexLV propPar;
+      //       MPlexQF msRad;
+      //       for (int n = 0; n < NN; ++n) {
+      //         msRad.At(n, 0, 0) = std::hypot(msPar.constAt(n, 0, 0), msPar.constAt(n, 1, 0));
+      //       }
       propagateHelixToPlaneMPlex(psErr, psPar, Chg, msPar, plNrm, propErr, propPar, outFailFlag, N_proc, propFlags);
+      //       propagateHelixToRMPlex(psErr, psPar, Chg, msRad, propErr, propPar, outFailFlag, N_proc, propFlags);
 
       kalmanOperationPlaneLocal(KFO_Update_Params | KFO_Local_Cov,
                                 propErr,
@@ -1338,6 +1343,66 @@ namespace mkfit {
                                 outErr,
                                 outPar,
                                 dummy_chi2,
+                                N_proc);
+    }
+    for (int n = 0; n < NN; ++n) {
+      if (n < N_proc && outPar.At(n, 3, 0) < 0) {
+        Chg.At(n, 0, 0) = -Chg.At(n, 0, 0);
+        outPar.At(n, 3, 0) = -outPar.At(n, 3, 0);
+      }
+    }
+  }
+
+  //------------------------------------------------------------------------------
+
+  void kalmanPropagateAndUpdatePlaneC(const MPlexLS& psErr,
+                                      const MPlexLV& psPar,
+                                      MPlexQI& Chg,
+                                      const MPlexHS& msErr,
+                                      const MPlexHV& msPar,
+                                      const MPlexHV& plNrm,
+                                      const MPlexHV& plDir,
+                                      const MPlexHV& plPnt,
+                                      MPlexLS& outErr,
+                                      MPlexLV& outPar,
+                                      MPlexQI& outFailFlag,
+                                      MPlexQF& outChi2,
+                                      const int N_proc,
+                                      const PropagationFlags& propFlags,
+                                      const bool propToHit) {
+    if (propToHit) {
+      MPlexLS propErr;
+      MPlexLV propPar;
+
+      propagateHelixToPlaneMPlex(psErr, psPar, Chg, msPar, plNrm, propErr, propPar, outFailFlag, N_proc, propFlags);
+
+      kalmanOperationPlaneLocal(KFO_Calculate_Chi2 | KFO_Update_Params | KFO_Local_Cov,
+                                propErr,
+                                propPar,
+                                Chg,
+                                msErr,
+                                msPar,
+                                plNrm,
+                                plDir,
+                                plPnt,
+                                outErr,
+                                outPar,
+                                outChi2,
+                                N_proc);
+
+    } else {
+      kalmanOperationPlaneLocal(KFO_Calculate_Chi2 | KFO_Update_Params | KFO_Local_Cov,
+                                psErr,
+                                psPar,
+                                Chg,
+                                msErr,
+                                msPar,
+                                plNrm,
+                                plDir,
+                                plPnt,
+                                outErr,
+                                outPar,
+                                outChi2,
                                 N_proc);
     }
     for (int n = 0; n < NN; ++n) {
@@ -1986,7 +2051,8 @@ namespace mkfit {
         }
         printf("\n");
         printf("K:\n");
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < 5; ++i) {  // K is MPlex52 now
+          printf(" i=%d  ", i);
           for (int j = 0; j < 2; ++j)
             printf("%8f ", K.At(0, i, j));
           printf("\n");
