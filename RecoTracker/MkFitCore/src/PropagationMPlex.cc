@@ -5,7 +5,7 @@
 
 #include "PropagationMPlex.h"
 
-//#define DEBUG
+// #define DEBUG
 #include "Debug.h"
 
 namespace mkfit {
@@ -400,7 +400,7 @@ namespace {
                                      const int nmax,
                                      const int N_proc,
                                      const PropagationFlags& pf) {
-    // bool debug = true;
+//     bool debug = true;
 
 #pragma omp simd
     for (int n = nmin; n < nmax; ++n) {
@@ -939,7 +939,7 @@ namespace mkfit {
                               const int N_proc,
                               const PropagationFlags& pflags,
                               const MPlexQI* noMatEffPtr) {
-    // bool debug = true;
+    //bool debug = true;
 
     // This is used further down when calculating similarity with errorProp (and before in DEBUG).
     // MT: I don't think this really needed if we use inErr where required.
@@ -953,6 +953,20 @@ namespace mkfit {
     helixAtRFromIterativeCCS(inPar, inChg, msRad, outPar, errorProp, outFailFlag, N_proc, pflags);
 
 #ifdef DEBUG
+    for (int n = 0; n < N_proc; ++n) {
+      dprint_np(
+          n,
+          "propagation to R end, dump parameters\n"
+              //<< "   D = " << s[n] << " alpha = " << s[n] * std::sin(inPar(n, 5, 0)) * inPar(n, 3, 0) * kinv[n] << " kinv = " << kinv[n] << std::endl
+              << "   pos = " << outPar(n, 0, 0) << " " << outPar(n, 1, 0) << " " << outPar(n, 2, 0) << "\t\t r="
+              << std::sqrt(outPar(n, 0, 0) * outPar(n, 0, 0) + outPar(n, 1, 0) * outPar(n, 1, 0)) << std::endl
+              << "   mom = " << outPar(n, 3, 0) << " " << outPar(n, 4, 0) << " " << outPar(n, 5, 0) << std::endl
+              << " charge = " << inChg(n, 0, 0) << std::endl
+              << " cart= " << std::cos(outPar(n, 4, 0)) / outPar(n, 3, 0) << " "
+              << std::sin(outPar(n, 4, 0)) / outPar(n, 3, 0) << " " << 1. / (outPar(n, 3, 0) * tan(outPar(n, 5, 0)))
+              << "\t\tpT=" << 1. / std::abs(outPar(n, 3, 0)) << std::endl);
+    }
+
     if (debug && g_debug) {
       for (int kk = 0; kk < N_proc; ++kk) {
         dprintf("outErr before prop %d\n", kk);
@@ -977,7 +991,71 @@ namespace mkfit {
     // MultHelixProp can be optimized for CCS coordinates, see GenMPlexOps.pl
     MPlexLL temp;
     MultHelixProp(errorProp, outErr, temp);
+#ifdef DEBUG
+    std::cout << "MultHelixProp" << std::endl;
+    for (int kk = 0; kk < 1; ++kk) {
+      std::cout << "errorProp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << errorProp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "outErr" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << outErr.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "temp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << temp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+    }
+#endif
     MultHelixPropTransp(errorProp, temp, outErr);
+#ifdef DEBUG
+    std::cout << "MultHelixPropTransp" << std::endl;
+    for (int kk = 0; kk < 1; ++kk) {
+      std::cout << "errorProp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << errorProp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "outErr" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << outErr.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "temp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << temp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+    }
+#endif
     // can replace with: MultHelixPropFull(errorProp, outErr, temp); MultHelixPropTranspFull(errorProp, temp, outErr);
 
 #ifdef DEBUG

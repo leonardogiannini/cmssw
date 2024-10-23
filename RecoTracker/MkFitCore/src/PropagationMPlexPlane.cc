@@ -5,7 +5,7 @@
 
 #include "PropagationMPlex.h"
 
-//#define DEBUG
+// #define DEBUG
 #include "Debug.h"
 
 namespace {
@@ -247,7 +247,7 @@ namespace {
     errorPropCurv.aij(4, 3) = (u11 * v21 + u12 * v22);
     errorPropCurv.aij(4, 4) = (v11 * v21 + v12 * v22 + v13 * v23);
 
-//debug = true;
+//     debug = true;
 #ifdef DEBUG
     for (int n = 0; n < NN; ++n) {
       if (debug && g_debug && n < N_proc) {
@@ -533,14 +533,14 @@ namespace mkfit {
                                   const int N_proc,
                                   const PropagationFlags& pflags,
                                   const MPlexQI* noMatEffPtr) {
-    // debug = true;
+//     debug = true;
 
     outErr = inErr;
     outPar = inPar;
 
     MPlexQF pathL;
     MPlexLL errorProp;
-
+    //std::cout << "first operation is helixAtPlane" << std::endl;
     helixAtPlane(inPar, inChg, plPnt, plNrm, pathL, outPar, errorProp, outFailFlag, N_proc, pflags);
 
 #ifdef DEBUG
@@ -601,33 +601,74 @@ namespace mkfit {
     // Matriplex version of:
     // result.errors = ROOT::Math::Similarity(errorProp, outErr);
     MPlexLL temp;
-    MultHelixPlaneProp(errorProp, outErr, temp);
-    MultHelixPlanePropTransp(errorProp, temp, outErr);
-    // MultHelixPropFull(errorProp, outErr, temp);
-    // for (int kk = 0; kk < 1; ++kk) {
-    //   std::cout << "errorProp" << std::endl;
-    //   for (int i = 0; i < 6; ++i) {
-    // 	for (int j = 0; j < 6; ++j)
-    // 	  std::cout << errorProp.constAt(kk, i, j) << " ";
-    // 	std::cout << std::endl;;
-    //   }
-    //   std::cout << std::endl;;
-    //   std::cout << "outErr" << std::endl;
-    //   for (int i = 0; i < 6; ++i) {
-    // 	for (int j = 0; j < 6; ++j)
-    // 	  std::cout << outErr.constAt(kk, i, j) << " ";
-    // 	std::cout << std::endl;;
-    //   }
-    //   std::cout << std::endl;;
-    //   std::cout << "temp" << std::endl;
-    //   for (int i = 0; i < 6; ++i) {
-    // 	for (int j = 0; j < 6; ++j)
-    // 	  std::cout << temp.constAt(kk, i, j) << " ";
-    // 	std::cout << std::endl;;
-    //   }
-    //   std::cout << std::endl;;
-    // }
-    // MultHelixPropTranspFull(errorProp, temp, outErr);
+#ifdef DEBUG
+    std::cout << "then mat mul MultHelixPlaneProp, MultHelixPlanePropTransp" << std::endl;
+#endif
+    MultHelixPropFull(errorProp, outErr, temp);
+#ifdef DEBUG
+    for (int kk = 0; kk < 1; ++kk) {
+      std::cout << "errorProp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << errorProp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "outErr" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << outErr.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "temp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << temp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+    }
+#endif
+    MultHelixPropTranspFull(errorProp, temp, outErr);
+#ifdef DEBUG
+    for (int kk = 0; kk < 1; ++kk) {
+      std::cout << "errorProp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << errorProp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "outErr" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << outErr.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+      std::cout << "temp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 6; ++j)
+          std::cout << temp.constAt(kk, i, j) << " ";
+        std::cout << std::endl;
+        ;
+      }
+      std::cout << std::endl;
+      ;
+    }
+    std::cout << "end of matmul" << std::endl;
+#endif
 
 #ifdef DEBUG
     if (debug && g_debug) {

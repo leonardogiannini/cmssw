@@ -5,7 +5,7 @@
 
 #include "PropagationMPlex.h"
 
-//#define DEBUG
+// #define DEBUG
 #include "Debug.h"
 
 namespace mkfit {
@@ -114,7 +114,8 @@ namespace mkfit {
       // const float thetaMSC2 = thetaMSC*thetaMSC;
       const float thetaMSC = 0.0136f * (1.f + 0.038f * std::log(radL)) / (beta * p);  // eq 32.15
       const float thetaMSC2 = thetaMSC * thetaMSC * radL;
-      if /*constexpr*/ (Config::usePtMultScat) {
+      if /*constexpr*/ (1) {  //Config::usePtMultScat) {
+                              //std::cout << "//Config::usePtMultScat" << std::endl;
         outErr.At(n, 3, 3) += thetaMSC2 * pz * pz * ipt2 * ipt2;
         outErr.At(n, 3, 5) -= thetaMSC2 * pz * ipt2;
         outErr.At(n, 4, 4) += thetaMSC2 * p2 * ipt2;
