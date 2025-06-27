@@ -179,14 +179,18 @@ namespace mkfit {
     void fwdFitFitTracks(const EventOfHits &eventofhits,
                          const int N_proc,
                          int nFoundHits,
-                         std::vector<std::vector<int>> indices_R2Z);
+                         std::vector<std::vector<int>> indices_R2Z,
+                         float *chi2);
     void bkReFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end);
     void bkReFitFitTracks(const EventOfHits &eventofhits,
                           const int N_proc,
                           int nFoundHits,
-                          std::vector<std::vector<int>> indices_R2Z);
+                          std::vector<std::vector<int>> indices_R2Z,
+                          float *chi2);
     void reFitOutputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end, int nFoundHits, bool bkw = false);
     std::vector<std::vector<int>> reFitIndices(const EventOfHits &eventofhits, const int N_proc, int nFoundHits);
+
+    void set_cpe(cpe_func cpe_function) { m_cpe_corr_func = cpe_function; };
 
     //----------------------------------------------------------------------------
 
@@ -357,6 +361,7 @@ namespace mkfit {
     const std::vector<bool> *m_iteration_hit_mask = nullptr;
     const Event *m_event = nullptr;
     const PropagationFlags *refit_flags = nullptr;
+    cpe_func m_cpe_corr_func = nullptr;
     int m_current_region = -1;
     bool m_in_fwd = true;
 

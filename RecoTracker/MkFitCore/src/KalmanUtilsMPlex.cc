@@ -8,6 +8,8 @@
 
 #include "RecoTracker/MkFitCore/interface/cms_common_macros.h"
 
+// #include "RecoTracker/MkFitCore/interface/MkJob.h"
+
 namespace {
   using namespace mkfit;
   using idx_t = Matriplex::idx_t;
@@ -1295,22 +1297,25 @@ namespace mkfit {
 
   //------------------------------------------------------------------------------
 
-  void kalmanPropagateAndUpdateAndChi2Plane(const MPlexLS& psErr,
-                                            const MPlexLV& psPar,
-                                            MPlexQI& Chg,
-                                            const MPlexHS& msErr,
-                                            const MPlexHV& msPar,
-                                            const MPlexHV& plNrm,
-                                            const MPlexHV& plDir,
-                                            const MPlexHV& plPnt,
-                                            MPlexLS& outErr,
-                                            MPlexLV& outPar,
-                                            MPlexQI& outFailFlag,
-                                            MPlexQF& outChi2,
-                                            const int N_proc,
-                                            const PropagationFlags& propFlags,
-                                            const bool propToHit,
-                                            const MPlexQI* noMatEffPtr) {
+  void kalmanPropagateAndUpdateAndChi2Plane(
+      const MPlexLS& psErr,
+      const MPlexLV& psPar,
+      MPlexQI& Chg,
+      const MPlexHS& msErr,
+      const MPlexHV& msPar,
+      const MPlexHV& plNrm,
+      const MPlexHV& plDir,
+      const MPlexHV& plPnt,
+      MPlexLS& outErr,
+      MPlexLV& outPar,
+      MPlexQI& outFailFlag,
+      MPlexQF& outChi2,
+      const int N_proc,
+      const PropagationFlags& propFlags,
+      const bool propToHit,
+      const MPlexQI* noMatEffPtr,
+      const MPlexQI* doCPE,
+      cpe_func cpe_corr_func) {  //last args are const MkJob*,  const MPlexQI* noMatEffPtr, const MPlexQI* doCPE (?)
     if (propToHit) {
       MPlexLS propErr;
       MPlexLV propPar;
@@ -1330,7 +1335,9 @@ namespace mkfit {
                                 outErr,
                                 outPar,
                                 outChi2,
-                                N_proc);
+                                N_proc,
+                                doCPE,
+                                cpe_corr_func);
 
     } else {
       kalmanOperationPlaneLocal(KFO_Calculate_Chi2 | KFO_Update_Params | KFO_Local_Cov,
@@ -1445,7 +1452,9 @@ namespace mkfit {
                                  MPlexLS& outErr,
                                  MPlexLV& outPar,
                                  MPlexQF& outChi2,
-                                 const int N_proc) {
+                                 const int N_proc,
+                                 const MPlexQI* doCPE,
+                                 cpe_func cpe_corr_func) {
 #ifdef DEBUG
     {
       dmutex_guard;
@@ -1536,6 +1545,116 @@ namespace mkfit {
 #pragma omp simd
     for (int n = 0; n < NN; ++n) {
       pzSign(n, 0, 0) = plo(n, 0, 2) > 0.f ? 1 : -1;
+    }
+
+    ///these are the local trajectory parameters  lp(n, 0, x) and pzSign(n, 0, 0)
+
+    //     LocalTrajectoryParameters(float aQbp, float aDxdz, float aDydz, float aX, float aY, float aPzSign, bool charged = true)
+    //     to call virtual ReturnType getParameters(const SiPixelCluster& cl, const GeomDetUnit& det, const LocalTrajectoryParameters& ltp) const = 0;
+    //     const SiPixelCluster& clust = *hit.cluster();
+    //     auto&& params = pixelCPE->getParameters(clust, *hit.detUnit(), tsos);
+
+    // use CPE
+    //restore global hit position and uncertainty
+
+    //     MPlexHS msErr_local=msErr;
+    //     MPlexHV msPar_local=msPar;
+    MPlex2V msPar_local;
+    MPlex2S msErr_local;
+
+    for (int n = 0; n < NN; ++n) {
+      if (doCPE && doCPE->constAt(n, 0, 0) >= 0 && cpe_corr_func) {
+        //std::cout << "RE GLOBAL x " << msPar.constAt(n, 0, 0) << " y " << msPar.constAt(n, 0, 1) << " z " << msPar.constAt(n, 0, 2) << std::endl;
+        float ltp[6] = {lp(n, 0, 0), lp(n, 0, 1), lp(n, 0, 2), lp(n, 0, 3), lp(n, 0, 4), (float)pzSign(n, 0, 0)};
+        float lh[5] = {0, 0, 0, 0, 0};
+        int hit_idx = doCPE->constAt(n, 0, 0);
+        bool check = cpe_corr_func(hit_idx, ltp, lh);
+
+        //std::cout << "x " << lh[0] << " y " << lh[1] << std::endl;
+        //std::cout << "xx " << lh[2] << " xy " << lh[3] << " yy " << lh[4] << std::endl;
+        //std::cout <<"+++++++++++++++++++++++++++ "<< std::endl;
+        if (!check)
+          continue;
+
+        msPar_local(n, 0, 0) = lh[0];
+        msPar_local(n, 0, 1) = lh[1];
+        msErr_local(n, 0, 0) = lh[2];
+        msErr_local(n, 0, 1) = lh[3];
+        msErr_local(n, 1, 1) = lh[4];
+
+        //         float local_x = lh[0];
+        //         float local_y = lh[1];
+        //         float local_dx = lh[2];
+        //         float local_dxy = lh[3];
+        //         float local_dy = lh[4];
+
+        //float globx = rot(n, 0, 0) * local_x + rot(n, 1, 0) * local_y + plPnt(n, 0, 0);
+        //         msPar_local(n,0,0) = rot(n, 0, 0) * local_x + rot(n, 1, 0) * local_y + plPnt(n, 0, 0);
+        //float globy = rot(n, 0, 1) * local_x + rot(n, 1, 1) * local_y + plPnt(n, 0, 1);
+        //         msPar_local(n,0,1) = rot(n, 0, 0) * local_x + rot(n, 1, 0) * local_y + plPnt(n, 0, 0);
+        //float globz = rot(n, 0, 2) * local_x + rot(n, 1, 2) * local_y + plPnt(n, 0, 2);
+        //         msPar_local(n,0,2) = rot(n, 0, 2) * local_x + rot(n, 1, 2) * local_y + plPnt(n, 0, 2);
+
+        // B is 3x3 sym = A^T C A
+        // C is 2x2 sym
+        // A is rot (partial)
+        // A is 3x2 (A^T is 2x3)
+
+        // A00 A01 A02
+        // A10 A11 A12
+
+        // A00 A10
+        // A01 A11
+        // A02 A12
+
+        // xx xy
+        // xy yy
+
+        // tmp00 tmp01
+        // tmp10 tmp11
+        // tmp20 tmp21
+        //std::cout << "msErr_local" << std::endl;
+        //std::cout <<  msErr_local.constAt(n, 0, 0) <<" " <<  msErr_local.constAt(n, 0, 1) <<" " <<  msErr_local.constAt(n, 0, 2) <<" " <<  std::endl;
+        //std::cout <<  msErr_local.constAt(n, 1, 0) <<" " <<  msErr_local.constAt(n, 1, 1) <<" " <<  msErr_local.constAt(n, 1, 2) <<" " <<  std::endl;
+        //std::cout <<  msErr_local.constAt(n, 2, 0) <<" " <<  msErr_local.constAt(n, 2, 1) <<" " <<  msErr_local.constAt(n, 2, 2) <<" " <<  std::endl;
+
+        //         float tmp00 = rot(n, 0, 0) * local_dx + rot(n, 1, 0) * local_dxy;
+        //         float tmp01 = rot(n, 0, 0) * local_dxy + rot(n, 1, 0) * local_dy;
+        //         float tmp10 = rot(n, 0, 1) * local_dx + rot(n, 1, 1) * local_dxy;
+        //         float tmp11 = rot(n, 0, 1) * local_dxy + rot(n, 1, 1) * local_dy;
+        //         float tmp20 = rot(n, 0, 2) * local_dx + rot(n, 1, 2) * local_dxy;
+        //         float tmp21 = rot(n, 0, 2) * local_dxy + rot(n, 1, 2) * local_dy;
+
+        //float errxx = tmp00*rot(n, 0, 0) + tmp01*rot(n, 1, 0);
+        //         msErr_local(n, 0, 0) = tmp00*rot(n, 0, 0) + tmp01*rot(n, 1, 0);
+        //float errxy = tmp00*rot(n, 0, 1) + tmp01*rot(n, 1, 1);
+        //         msErr_local(n, 0, 1) = tmp00*rot(n, 0, 1) + tmp01*rot(n, 1, 1);
+        //         msErr_local(n, 1, 0) = msErr_local(n, 0, 1);
+        //float errxz = tmp00*rot(n, 0, 2) + tmp01*rot(n, 1, 2);
+        //         msErr_local(n, 0, 2) = tmp00*rot(n, 0, 2) + tmp01*rot(n, 1, 2);
+        //         msErr_local(n, 2, 0) = msErr_local(n, 0, 2);
+        //float erryy = tmp10*rot(n, 0, 1) + tmp11*rot(n, 1, 1);
+        //         msErr_local(n, 1, 1) = tmp10*rot(n, 0, 1) + tmp11*rot(n, 1, 1);
+        //float erryz = tmp10*rot(n, 0, 2) + tmp11*rot(n, 1, 2);
+        //         msErr_local(n, 1, 2) = tmp10*rot(n, 0, 2) + tmp11*rot(n, 1, 2);
+        //         msErr_local(n, 2, 1) = msErr_local(n, 1, 2);
+        //float errzz = tmp20*rot(n, 0, 2) + tmp21*rot(n, 1, 2);
+        //         msErr_local(n, 2, 2) = tmp20*rot(n, 0, 2) + tmp21*rot(n, 1, 2);
+
+        //std::cout << "RRE GLOBAL x " << globx << " y " << globy << " z " << globz << std::endl;
+
+        //std::cout << "msErr" << std::endl;
+        //std::cout <<  msErr.constAt(n, 0, 0) <<" " <<  msErr.constAt(n, 0, 1) <<" " <<  msErr.constAt(n, 0, 2) <<" " <<  std::endl;
+        //std::cout <<  msErr.constAt(n, 1, 0) <<" " <<  msErr.constAt(n, 1, 1) <<" " <<  msErr.constAt(n, 1, 2) <<" " <<  std::endl;
+        //std::cout <<  msErr.constAt(n, 2, 0) <<" " <<  msErr.constAt(n, 2, 1) <<" " <<  msErr.constAt(n, 2, 2) <<" " <<  std::endl;
+        //std::cout << "newErr" << std::endl;
+        //std::cout <<  errxx <<" " <<  errxy <<" " <<  errxz <<" " <<  std::endl;
+        //std::cout <<  errxy <<" " <<  erryy <<" " <<  erryz <<" " <<  std::endl;
+        //std::cout <<  errxz <<" " <<  erryz <<" " <<  errzz <<" " <<  std::endl;
+        //std::cout <<  msErr_local.constAt(n, 0, 0) <<" " <<  msErr_local.constAt(n, 0, 1) <<" " <<  msErr_local.constAt(n, 0, 2) <<" " <<  std::endl;
+        //std::cout <<  msErr_local.constAt(n, 1, 0) <<" " <<  msErr_local.constAt(n, 1, 1) <<" " <<  msErr_local.constAt(n, 1, 2) <<" " <<  std::endl;
+        //std::cout <<  msErr_local.constAt(n, 2, 0) <<" " <<  msErr_local.constAt(n, 2, 1) <<" " <<  msErr_local.constAt(n, 2, 2) <<" " <<  std::endl;
+      }
     }
 
     /*
@@ -1654,6 +1773,15 @@ namespace mkfit {
     }
     MPlex2V mslo;
     RotateResidualsOnPlane(rot, md, mslo);
+#pragma omp simd
+    //copy CPE pos for pixel hits if all ok
+    //need to add a CPE bool check
+    for (int n = 0; n < NN; ++n) {
+      if (doCPE && doCPE->constAt(n, 0, 0) >= 0 && cpe_corr_func) {
+        mslo(n, 0, 0) = msPar_local(n, 0, 0);
+        mslo(n, 0, 1) = msPar_local(n, 0, 1);
+      }
+    }
 
     MPlex2V res_loc;  //position residual in local coordinates
 #pragma omp simd
@@ -1666,6 +1794,15 @@ namespace mkfit {
     MPlex2H temp2Hmsl;
     ProjectResErr(rot, msErr, temp2Hmsl);
     ProjectResErrTransp(rot, temp2Hmsl, msErr_loc);
+#pragma omp simd
+    //copy CPE error for pixel hits if all ok
+    for (int n = 0; n < NN; ++n) {
+      if (doCPE && doCPE->constAt(n, 0, 0) >= 0 && cpe_corr_func) {
+        msErr_loc(n, 0, 0) = msErr_local(n, 0, 0);
+        msErr_loc(n, 0, 1) = msErr_local(n, 0, 1);
+        msErr_loc(n, 1, 1) = msErr_local(n, 1, 1);
+      }
+    }
 
     MPlex2S resErr_loc;  //covariance sum in local position coordinates
 #pragma omp simd

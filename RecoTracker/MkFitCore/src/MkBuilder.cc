@@ -19,7 +19,7 @@
 #endif
 
 //#define DEBUG
-//#define DEBUG_FIT
+// #define DEBUG_FIT
 #include "Debug.h"
 //#define DEBUG_FINAL_FIT
 
@@ -1409,40 +1409,144 @@ namespace mkfit {
   // ReFit
   //==============================================================================
 
-  void MkBuilder::fit_tracks(MkFinder *mkfndr, int nFoundHits, std::vector<int> inds, int start_trk, int end_trk) {
+  void MkBuilder::fit_tracks(MkFinder *mkfndr,
+                             int nFoundHits,
+                             std::vector<int> inds,
+                             int start_trk,
+                             int end_trk,
+                             std::map<int, std::vector<int>> *remap) {
     //could be wrapped into some setup_fit
     const TrackerInfo &ti = m_job->m_trk_info;
     PropagationFlags my_flags = PropagationFlags(PF_use_param_b_field | PF_apply_material);
     my_flags.tracker_info = &ti;
+    //clean at the end
     mkfndr->refit_flags = &my_flags;
+    mkfndr->set_cpe(m_job->m_cpe_corr_func);
 
     mkfndr->m_event = m_event;
 
+    float chi2fwd[(end_trk - start_trk) * nFoundHits] = {0};
+    float chi2bkwd[(end_trk - start_trk) * nFoundHits] = {0};
+    int sortedIdxs[(end_trk - start_trk) * nFoundHits] = {0};
+    int n_removed[(end_trk - start_trk)] = {0};
+
     for (int icand = start_trk; icand < end_trk; icand += NN) {
+      std::cout << "being fit "<< std::endl;	    
       const int end = std::min(icand + NN, end_trk);
 
+      std::cout << "being fit 1"<< std::endl;
       // input candidate tracks
       mkfndr->fwdFitInputTracks(m_tracks, inds, icand, end);
-
+      std::cout << "being fit 2"<< std::endl;
       //prepare indices
       std::vector<std::vector<int>> indices_R2 = mkfndr->reFitIndices(m_job->m_event_of_hits, end - icand, nFoundHits);
-
+      std::cout << "being fit 3"<< std::endl;
       // fit the tracks from the input in fwd direction
-      mkfndr->fwdFitFitTracks(m_job->m_event_of_hits, end - icand, nFoundHits, indices_R2);
-
+      mkfndr->fwdFitFitTracks(m_job->m_event_of_hits, end - icand, nFoundHits, indices_R2, chi2fwd);
+      std::cout << "being fit 4"<< std::endl;
       // fwdFitOutput
       mkfndr->reFitOutputTracks(m_tracks, inds, icand, end, nFoundHits);
-
+      std::cout << "being fit 5"<< std::endl;
       // input candidate tracks
       mkfndr->bkReFitInputTracks(m_tracks, inds, icand, end);
-
+      std::cout << "being fit 6"<< std::endl;
       // fit the tracks from the input in bkw direction
-      mkfndr->bkReFitFitTracks(m_job->m_event_of_hits, end - icand, nFoundHits, indices_R2);
-
+      mkfndr->bkReFitFitTracks(m_job->m_event_of_hits, end - icand, nFoundHits, indices_R2, chi2bkwd);
+      std::cout << "being fit 7"<< std::endl;
       // fwdFitOutput
       mkfndr->reFitOutputTracks(m_tracks, inds, icand, end, nFoundHits, true);
+
+      std::cout << "fit end ed" <<std::endl;
+      if(remap){
+        std::cout << "chi2 proc" << std::endl;
+        for (int i = 0; i < end_trk - start_trk; i++) {
+          for (int j = 0; j < nFoundHits; j++) {
+            sortedIdxs[j + nFoundHits * i]=indices_R2[i][j];
+          }
+        }
+      }//do the copy of indices ---- only if remap is there
     }
 
+    //do the processing of the chi2
+    if (remap) {
+      std::cout << "chi2 proc" << std::endl;
+      for (int i = 0; i < end_trk - start_trk; i++) {
+        //sort by worst
+        std::map<float, int> scorerAndIdx;
+        for (int j = 0; j < nFoundHits; j++) {
+          float TF = 23.7 * j / nFoundHits + 0.8;
+          float TB = 23.6 * (nFoundHits - 1 - j) / nFoundHits + 3.6;
+//           std::cout <<"hitF "<<j<<" "<< chi2fwd[j+nFoundHits*i] <<" "<<j*1.0/nFoundHits<< std::endl;
+//           std::cout <<"hitB "<<j<<" "<< chi2bkwd[nFoundHits - 1 - j + nFoundHits * i] << " " << (nFoundHits - 1 - j)*1.0/nFoundHits << std::endl;
+//           std::cout << TB << std::endl;
+//           std::cout << TF << std::endl;
+          float scorer = (chi2fwd[j + nFoundHits * i] - TF) + (chi2bkwd[nFoundHits - 1 - j + nFoundHits * i] - TB); // can be another chi2 based metric
+	  scorer = (chi2fwd[j + nFoundHits * i]) + (chi2bkwd[nFoundHits - 1 - j + nFoundHits * i]);//simpler alternative
+          scorerAndIdx[-scorer]=j;
+        }
+
+//         for (auto idscore: scorerAndIdx){
+//           std::cout << "idscore.first" << " " << "idscore.second" << std::endl;
+//             std::cout << idscore.first << " " << idscore.second << std::endl;
+//         }
+        int remove_i=0;
+        for (auto idscore: scorerAndIdx){
+            //if(idscore.first<0)
+	    if( (m_tracks[inds[i+start_trk]].pT()>1 && -idscore.first>20 && chi2fwd[idscore.second + nFoundHits * i]>8. && chi2bkwd[nFoundHits - 1 - idscore.second + nFoundHits * i]>8) ||
+	        (m_tracks[inds[i+start_trk]].pT()<=1 && -idscore.first>15 && chi2fwd[idscore.second + nFoundHits * i]>7. && chi2bkwd[nFoundHits - 1 - idscore.second + nFoundHits * i]>7)
+	      )
+            {
+              if((nFoundHits - remove_i)<=3) continue; // 3 hits is the minimum...
+              remove_i++;
+              n_removed[i] += 1;
+              m_tracks[inds[i+start_trk]].removeHit(sortedIdxs[nFoundHits - 1 - idscore.second + nFoundHits * i]);
+//               std::cout << "REMOVAL trk index " << inds[i+start_trk] << " hit index "<< sortedIdxs[idscore.second + nFoundHits * i] << " corresponds to " << idscore.first <<  std::endl;
+//               std::cout << "REMOVAL trk index " << inds[i+start_trk] << " hit index maybe "<< sortedIdxs[nFoundHits - 1 - idscore.second + nFoundHits * i] << " corresponds to " << idscore.first <<  std::endl;
+//               std::cout << "REMOVAL trk index " << i+start_trk << " hit index "<< idscore.second << " "<< nFoundHits << " "<< i  <<  std::endl;
+
+            }
+        }
+
+// //         std::cout << "trk i " << i << " nH " << nFoundHits << std::endl;
+//         for (int j = 0; j < nFoundHits; j++) {
+// //           std::cout << chi2fwd[j + nFoundHits * i] << " " << chi2bkwd[nFoundHits - 1 - j + nFoundHits * i] << " - ";
+//           float TF = 23.7 * j / nFoundHits + 0.8;
+//           float TB = 23.6 * (nFoundHits - 1 - j) / nFoundHits + 3.6;
+//           if (chi2fwd[j + nFoundHits * i] > TF && chi2bkwd[nFoundHits - 1 - j + nFoundHits * i] > TB) {
+// //             if((chi2fwd[j + nFoundHits * i] > 7 && chi2bkwd[nFoundHits - 1 - j + nFoundHits * i] > 7) && (chi2fwd[j + nFoundHits * i]+chi2bkwd[nFoundHits - 1 - j + nFoundHits * i])>15) {
+// // 	    std::cout << "REMOVE HIT " << TF << " " << TB << " " << std::endl;
+//             n_removed[i] += 1;
+//             //m_tracks[inds[i+start_trk]] remove hit at indices_R2[i+start_trk][j]
+// 	    m_tracks[inds[i+start_trk]].removeHit(sortedIdxs[j + nFoundHits * i]);
+//             //insert track in a new collection with nFoundHits - 1
+//           }
+//         }
+//         std::cout << "end i " << i << std::endl;
+      }
+
+      for (int i = 0; i < end_trk - start_trk; i++) {
+//         std::cout << "REMOVED ARE >>> " << n_removed[i] << " COMPARE " << nFoundHits <<std::endl;
+        if (n_removed[i] && (nFoundHits - n_removed[i])>2)
+          (*remap)[nFoundHits - n_removed[i]].push_back(inds[i + start_trk]);  // passed to refit
+      }
+    }
+
+//          for (int i=0; i<end_trk-start_trk; i++){
+//             std::cout << "trk i SUM " << i << " nH "<< nFoundHits <<std::endl;
+//             for (int j=0; j<nFoundHits; j++){
+//                 std::cout << "index " << j+nFoundHits*i << std::endl;
+//                 std::cout <<"hitF "<<j<<" "<< chi2fwd[j+nFoundHits*i] <<" "<<j*1.0/nFoundHits<< std::endl;
+//             }
+//             for (int j=0; j<nFoundHits; j++){
+//                 std::cout << "index " << j+nFoundHits*i << std::endl;
+//                 std::cout << "reverse index " << nFoundHits - 1 - j + nFoundHits * i << std::endl;
+//                 std::cout <<"hitB "<<j<<" "<< chi2bkwd[j+nFoundHits*i] <<" "<<j*1.0/nFoundHits<< std::endl;
+//                 std::cout <<"hitB "<<j<<" "<< chi2bkwd[nFoundHits - 1 - j + nFoundHits * i] << " " << (nFoundHits - 1 - j)*1.0/nFoundHits << std::endl;
+//             }
+//             std::cout << "end i " << i << std::endl;
+//         }
+
+    //reset the cpe_func
     mkfndr->release();
   }
 
@@ -1465,12 +1569,13 @@ namespace mkfit {
   }
 
   void MkBuilder::fittracks() {
-#ifdef DEBUG_FIT
+    // #ifdef DEBUG_FIT
     std::cout << "here are N tracks " << m_tracks.size() << std::endl;
-#endif
+    // #endif
     int N = 0;
 
     std::map<int, std::vector<int>> mapFoundHits;
+    std::map<int, std::vector<int>> remap;
     for (auto &t : m_tracks) {
 #ifdef DEBUG_FIT
       std::cout << "______________ " << std::endl;
@@ -1489,15 +1594,18 @@ namespace mkfit {
         mapFoundHits[foundh] = {N};
       N++;
     }
-#ifdef DEBUG_FIT
+// #ifdef DEBUG_FIT
+    int n = 0;
     for (auto &m : mapFoundHits) {
       std::cout << m.first << " the key " << std::endl;
       for (auto i : m.second) {
         std::cout << i << " index ";
+        n++;
       }
       std::cout << "\n";
     }
-#endif
+    std::cout << "total MAP " << n << std::endl;
+// #endif
     auto mkfndr = g_exe_ctx.m_finders.makeOrGet();
     for (auto &m : mapFoundHits) {
       int ntimes = m.second.size() / NN;
@@ -1510,13 +1618,46 @@ namespace mkfit {
 #ifdef DEBUG_FIT
         check_tracks(m.second, NN * i, NN * (i + 1));
 #endif
-        fit_tracks(mkfndr.get(), m.first, m.second, NN * i, NN * (i + 1));
+        fit_tracks(mkfndr.get(), m.first, m.second, NN * i, NN * (i + 1), &remap);
       }
 #ifdef DEBUG_FIT
       check_tracks(m.second, NN * ntimes, m.second.size());
 #endif
-      fit_tracks(mkfndr.get(), m.first, m.second, NN * ntimes, m.second.size());
+      fit_tracks(mkfndr.get(), m.first, m.second, NN * ntimes, m.second.size(), &remap);
     }
+    //print
+    n = 0;
+    for (auto &m : remap) {
+      std::cout << m.first << " REMAP the key " << std::endl;
+      for (auto i : m.second) {
+        std::cout << i << " index " <<  m_tracks[i].nTotalHits() <<" ";
+        n++;
+      }
+      std::cout << "\n";
+      std::cout << "remap" << std::endl;
+    }
+    std::cout << "total REMAP " << n << std::endl;
+    //refit...
+     for (auto &m : remap) {
+       int ntimes = m.second.size() / NN;
+#ifdef DEBUG_FIT
+       std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+       std::cout << "ntimes " << ntimes << " size  " << m.second.size() << " extra " << m.second.size() - NN * ntimes
+                 << std::endl;
+#endif
+       for (int i = 0; i < ntimes; i++) {
+#ifdef DEBUG_FIT
+         check_tracks(m.second, NN * i, NN * (i + 1));
+#endif
+         fit_tracks(mkfndr.get(), m.first, m.second, NN * i, NN * (i + 1));
+       }
+#ifdef DEBUG_FIT
+       check_tracks(m.second, NN * ntimes, m.second.size());
+#endif
+       fit_tracks(mkfndr.get(), m.first, m.second, NN * ntimes, m.second.size());
+     }
+
+  std::cout << "crash" <<std::endl;
   }
 
 }  // end namespace mkfit

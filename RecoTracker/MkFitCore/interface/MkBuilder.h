@@ -119,7 +119,12 @@ namespace mkfit {
     //refit
 
     void fittracks();
-    void fit_tracks(MkFinder *mkfndr, int nFoundTracks, std::vector<int> inds, int start_trk, int end_trk);
+    void fit_tracks(MkFinder *mkfndr,
+                    int nFoundTracks,
+                    std::vector<int> inds,
+                    int start_trk,
+                    int end_trk,
+                    std::map<int, std::vector<int>> *remap = nullptr);
     void check_tracks(std::vector<int> inds, int start_trk, int end_trk);
 
   private:

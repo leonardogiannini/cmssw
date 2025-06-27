@@ -10,6 +10,8 @@
 
 //#define DEBUG
 // #define DEBUG_FIT
+// #define DEBUG_FITi
+// #define DEBUG_FIT_BKW
 #include "Debug.h"
 
 #if defined(MKFIT_STANDALONE)
@@ -66,6 +68,10 @@ namespace mkfit {
     m_event = nullptr;
     m_current_region = -1;
     m_in_fwd = true;
+    //refit_flags
+    refit_flags = nullptr;
+    //cpe
+    m_cpe_corr_func = nullptr;
   }
 
   void MkFinder::begin_layer(const LayerOfHits &layer_of_hits) {
@@ -2572,7 +2578,7 @@ namespace mkfit {
       std::vector<int> sorted_indices;
       float z0 = r2z.back().second;
       bool barrel_prev = false;
-      std::map<float, int> index_RorZ;
+      std::map<float, std::vector<int>> index_RorZ;
 
       for (int i = 0; i < (int)indices.size(); i++) {
         bool barrel = r2z[i].first > 0;
@@ -2586,23 +2592,48 @@ namespace mkfit {
           sorting = -std::fabs(r2z[i].second - z0);
 
         if (i == 0) {
-          index_RorZ[sorting] = indices[i];
+          index_RorZ[sorting].push_back(indices[i]);
         } else {
           if (barrel == barrel_prev)  //add to segment in barrel or endcap
-            index_RorZ[sorting] = indices[i];
-          else  //switch barrel to endcap
+          {
+            //             if(index_RorZ[sorting]) {
+            //               float delta = sorting/1000000;
+            //               if (delta==0) delta+=1./1000000;
+            //               std::cout << "delta " << delta << std::endl;
+            //               index_RorZ[sorting+delta] = indices[i];
+            //
+            //             } //some hits are fully duplicates... not clear
+            //             else
+            index_RorZ[sorting].push_back(indices[i]);
+          } else  //switch barrel to endcap
           {
             for (auto iRZ : index_RorZ)
-              sorted_indices.push_back(iRZ.second);                  //push back indices sorted for segment
+              for (auto iiRZ : iRZ.second)
+                sorted_indices.push_back(iiRZ);                      //push back indices sorted for segment
             index_RorZ.erase(index_RorZ.begin(), index_RorZ.end());  //empty the map
-            index_RorZ[sorting] = indices[i];                        //start new segment
+            index_RorZ[sorting].push_back(indices[i]);               //start new segment
           }
         }
         barrel_prev = barrel;
       }
       for (auto iRZ : index_RorZ)  //final segment
-        sorted_indices.push_back(iRZ.second);
+        for (auto iiRZ : iRZ.second)
+          sorted_indices.push_back(iiRZ);
+
+      if (indices.size() != sorted_indices.size()) {
+        std::cout << indices.size() << "  " << sorted_indices.size() << std::endl;
+        for (auto ii : indices) {
+          std::cout << " indices ii " << ii << std::endl;
+        }
+        for (auto ii : sorted_indices) {
+          std::cout << " indices ssii " << ii << std::endl;
+        }
+        for (int i = 0; i < (int)indices.size(); i++) {
+          std::cout << "R2 " << r2z[i].first << " z " << r2z[i].second << " z0 " << z0 << std::endl;
+        }
+      }
 #ifdef DEBUG_FIT
+      std::cout << " check_size " << (indices.size() == sorted_indices.size()) << std::endl;
       for (auto ii : indices) {
         std::cout << " indices ii " << ii << std::endl;
       }
@@ -2618,15 +2649,18 @@ namespace mkfit {
   void MkFinder::fwdFitFitTracks(const EventOfHits &eventofhits,
                                  const int N_proc,
                                  int nFoundHits,
-                                 std::vector<std::vector<int>> indices_R2Z) {
+                                 std::vector<std::vector<int>> indices_R2Z,
+                                 float *chi2) {
     MPlexQF outChi2(0.0f);
     MPlexLV propPar;
 
     MPlexHV norm, dir, pnt;
 
     MPlexQI no_mat_effs;
+    MPlexQI do_cpe;
 
     no_mat_effs.setVal(0);
+    do_cpe.setVal(-1);
 #ifdef DEBUG_FIT
     const int DSLOT = 0;
     printf("fit entry, track in slot %d\n", DSLOT);
@@ -2659,6 +2693,7 @@ namespace mkfit {
       std::cout << "MY HIT " << h << " nFoundHits " << nFoundHits << std::endl;
 #endif
       no_mat_effs.setVal(0);
+      do_cpe.setVal(-1);
 
       for (int i = 0; i < N_proc; ++i)  //loop over tracks in group
       {
@@ -2673,6 +2708,9 @@ namespace mkfit {
         if (m_HoTArr[i][index].index >= 0) {  //should be a redundant check
           const LayerOfHits &L = eventofhits[m_HoTArr[i][index].layer];
           const Hit &hit = L.refHit(m_HoTArr[i][index].index);
+          if (L.is_pixel()) {
+            do_cpe[i] = m_HoTArr[i][index].index;
+          }  //hopefully ok to get the cluster
 #ifdef DEBUG_FIT
           std::cout << "m_msPar " << m_msPar(i, 0, 0) << std::endl;
 #endif
@@ -2760,7 +2798,9 @@ namespace mkfit {
                                            N_proc,
                                            *refit_flags,
                                            true,
-                                           &no_mat_effs);
+                                           &no_mat_effs,
+                                           &do_cpe,
+                                           m_cpe_corr_func);
 
 #ifdef DEBUG_FIT
       std::cout << " i1 " << i1 << " iP " << iP << " iC " << iC << std::endl;
@@ -2782,13 +2822,17 @@ namespace mkfit {
 
       // update chi2
       m_Chi2.add(outChi2);
+      for (int i = 0; i < N_proc; ++i) {
+        chi2[h + i * nFoundHits] = outChi2[i];
+      }
     }  //end of loop over n hits
   }  //end of fit func
 
   void MkFinder::bkReFitFitTracks(const EventOfHits &eventofhits,
                                   const int N_proc,
                                   int nFoundHits,
-                                  std::vector<std::vector<int>> indices_R2Z) {
+                                  std::vector<std::vector<int>> indices_R2Z,
+                                  float *chi2) {
 #ifdef DEBUG_FIT_BKW
     std::cout << "bkReFitFitTracks " << nFoundHits << std::endl;
 #endif
@@ -2798,6 +2842,10 @@ namespace mkfit {
     MPlexHV norm, dir, pnt;
 
     MPlexQI no_mat_effs;
+    MPlexQI do_cpe;
+
+    no_mat_effs.setVal(0);
+    do_cpe.setVal(-1);
 
     int i1, i2;
     if (nFoundHits % 2 == 0) {
@@ -2821,6 +2869,7 @@ namespace mkfit {
       std::cout << "MY HIT " << h << " nFoundHits " << nFoundHits << std::endl;
 #endif
       no_mat_effs.setVal(0);
+      do_cpe.setVal(-1);
 
       for (int i = 0; i < N_proc; ++i)  //loop over tracks in group
       {
@@ -2836,6 +2885,9 @@ namespace mkfit {
         if (m_HoTArr[i][index].index >= 0) {  //should be a redundant check
           const LayerOfHits &L = eventofhits[m_HoTArr[i][index].layer];
           const Hit &hit = L.refHit(m_HoTArr[i][index].index);
+          if (L.is_pixel()) {
+            do_cpe[i] = m_HoTArr[i][index].index;
+          }  //hopefully ok to get the cluster
 #ifdef DEBUG_FIT_BKW
           std::cout << "m_msPar " << m_msPar(i, 0, 0) << std::endl;
 #endif
@@ -2922,7 +2974,9 @@ namespace mkfit {
                                            N_proc,
                                            *refit_flags,
                                            true,
-                                           &no_mat_effs);
+                                           &no_mat_effs,
+                                           &do_cpe,
+                                           m_cpe_corr_func);
 
 #ifdef DEBUG_FIT_BKW
       std::cout << " i1 " << i1 << " iP " << iP << " iC " << iC << std::endl;
@@ -2945,6 +2999,9 @@ namespace mkfit {
 
       // update chi2
       m_Chi2.add(outChi2);
+      for (int i = 0; i < N_proc; ++i) {
+        chi2[h + i * nFoundHits] = outChi2[i];
+      }
 
     }  //end of loop over n hits
   }  //end of fit func

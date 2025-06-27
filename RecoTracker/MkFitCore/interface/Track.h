@@ -445,6 +445,15 @@ namespace mkfit {
 
     void addHitIdx(const HitOnTrack& hot, float chi2) { addHitIdx(hot.index, hot.layer, chi2); }
 
+    void removeHit(int posHitIdx){
+      // negative index and keep hit
+      hitsOnTrk_[posHitIdx].index=-1;
+      // in alternative can remove it from the vector
+      //hitsOnTrk_.erase(hitsOnTrk_.begin() + posHitIdx);
+      //lastHitIdx_=lastHitIdx_-1;
+      nFoundHits_=nFoundHits_-1;
+    }
+
     HitOnTrack getHitOnTrack(int posHitIdx) const { return hitsOnTrk_[posHitIdx]; }
 
     int getHitIdx(int posHitIdx) const { return hitsOnTrk_[posHitIdx].index; }
