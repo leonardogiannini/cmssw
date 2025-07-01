@@ -2607,7 +2607,7 @@ namespace mkfit {
             index_RorZ[sorting].push_back(indices[i]);
           } else  //switch barrel to endcap
           {
-            for (auto iRZ : index_RorZ)
+            for (const auto &iRZ : index_RorZ)
               for (auto iiRZ : iRZ.second)
                 sorted_indices.push_back(iiRZ);                      //push back indices sorted for segment
             index_RorZ.erase(index_RorZ.begin(), index_RorZ.end());  //empty the map
@@ -2616,7 +2616,7 @@ namespace mkfit {
         }
         barrel_prev = barrel;
       }
-      for (auto iRZ : index_RorZ)  //final segment
+      for (const auto &iRZ : index_RorZ)  //final segment
         for (auto iiRZ : iRZ.second)
           sorted_indices.push_back(iiRZ);
 
@@ -2680,7 +2680,7 @@ namespace mkfit {
     int i1 = iC;  //local copy
     int i2 = iP;  //local copy
 
-    int hitIndex[N_proc] = {0};
+    int hitIndex[N_proc];
 
     for (int i = 0; i < N_proc; ++i)  //loop over tracks in group
     {
@@ -2856,7 +2856,7 @@ namespace mkfit {
       i2 = iC;
     }
 
-    int hitIndex[N_proc] = {0};
+    int hitIndex[N_proc];
 
     for (int i = 0; i < N_proc; ++i)  //loop over tracks in group
     {

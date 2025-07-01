@@ -95,9 +95,9 @@ private:
                          const std::vector<const DetLayer*>& detLayers,
                          const mkfit::TrackVec& mkFitSeeds,
                          const reco::BeamSpot* bs,
-                         reco::TrackCollection &trks,
-                         std::vector<int> &seedIndices,
-                         std::vector<edm::OwnVector<TrackingRecHit>> &hitsVecs) const;
+                         reco::TrackCollection& trks,
+                         std::vector<int>& seedIndices,
+                         std::vector<edm::OwnVector<TrackingRecHit>>& hitsVecs) const;
 
   std::pair<TrajectoryStateOnSurface, const GeomDet*> backwardFit(const FreeTrajectoryState& fts,
                                                                   const edm::OwnVector<TrackingRecHit>& hits,
@@ -112,7 +112,6 @@ private:
                                                                             const edm::OwnVector<TrackingRecHit>& hits,
                                                                             const Propagator& propagatorAlong,
                                                                             const Propagator& propagatorOpposite) const;
-
 
   const edm::EDGetTokenT<MkFitEventOfHits> eventOfHitsToken_;
   const edm::EDGetTokenT<MkFitClusterIndexToHit> pixelClusterIndexToHitToken_;
@@ -174,10 +173,10 @@ MkFitOutputTrackConverter::MkFitOutputTrackConverter(edm::ParameterSet const& iC
       algo_{reco::TrackBase::algoByName(
           TString(iConfig.getParameter<edm::InputTag>("seeds").label()).ReplaceAll("Seeds", "").Data())},
       bsToken_(consumes<reco::BeamSpot>(edm::InputTag("offlineBeamSpot"))) {
-           produces<reco::TrackCollection>();
-           produces<TrackingRecHitCollection>();
-	   produces<reco::TrackExtraCollection>();
-      }
+  produces<reco::TrackCollection>();
+  produces<TrackingRecHitCollection>();
+  produces<reco::TrackExtraCollection>();
+}
 
 void MkFitOutputTrackConverter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
@@ -205,8 +204,7 @@ void MkFitOutputTrackConverter::fillDescriptions(edm::ConfigurationDescriptions&
 }
 
 void MkFitOutputTrackConverter::produce(edm::StreamID iID, edm::Event& iEvent, const edm::EventSetup& iSetup) const {
-//   std::cout << "export ing tracks" << std::endl;
-  edm::Handle<edm::View<TrajectorySeed> > hseeds;
+  edm::Handle<edm::View<TrajectorySeed>> hseeds;
   iEvent.getByToken(seedToken_, hseeds);
   const auto& seeds = *hseeds;
   const auto& mkfitSeeds = iEvent.get(mkfitSeedToken_);
@@ -256,18 +254,18 @@ void MkFitOutputTrackConverter::produce(edm::StreamID iID, edm::Event& iEvent, c
                     seedIndices,
                     hitsVecs);
 
-//   std::cout << "convert done" << std::endl;
   int i = 0;
-  for (auto &trk: *trks){
-    for (auto &h: hitsVecs[i]) hits->push_back(h);
+  for (auto& trk : *trks) {
+    for (auto& h : hitsVecs[i])
+      hits->push_back(h);
 
     reco::TrackExtra extra;
 
     extra.setHits(ref_rechits, hidx, trk.numberOfValidHits());
-    hidx+=trk.numberOfValidHits();
+    hidx += trk.numberOfValidHits();
 
     extra.setSeedRef(edm::RefToBase<TrajectorySeed>(hseeds, seedIndices[i]));
-    
+
     AlgebraicVector5 v = AlgebraicVector5(0, 0, 0, 0, 0);
     reco::TrackExtra::TrajParams trajParams(trk.numberOfValidHits(), LocalTrajectoryParameters(v, 1.));
     reco::TrackExtra::Chi2sFive chi2s(trk.numberOfValidHits(), 0);
@@ -279,7 +277,6 @@ void MkFitOutputTrackConverter::produce(edm::StreamID iID, edm::Event& iEvent, c
 
     i++;
   }
-//   std::cout << "extras done" << std::endl;
 
   // Convert mkfit cands to cmssw tracks
   //iEvent.emplace(putTrackToken_,trks);
@@ -291,7 +288,6 @@ void MkFitOutputTrackConverter::produce(edm::StreamID iID, edm::Event& iEvent, c
 
   // TODO: SeedStopInfo is currently unfilled
   iEvent.emplace(putSeedStopInfoToken_, seeds.size());
-//   std::cout << "export ed tracks" << std::endl;
 }
 
 void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFitOutput,
@@ -308,10 +304,9 @@ void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFi
                                                   const std::vector<const DetLayer*>& detLayers,
                                                   const mkfit::TrackVec& mkFitSeeds,
                                                   const reco::BeamSpot* bs,
-                                                  reco::TrackCollection &trks,
-                                                  std::vector<int> &seedIndices,
-                                                  std::vector<edm::OwnVector<TrackingRecHit>> &hitsVecs) const {
-
+                                                  reco::TrackCollection& trks,
+                                                  std::vector<int>& seedIndices,
+                                                  std::vector<edm::OwnVector<TrackingRecHit>>& hitsVecs) const {
   const auto& candidates = mkFitOutput.tracks();
   trks.reserve(candidates.size());
   seedIndices.reserve(candidates.size());
@@ -320,8 +315,8 @@ void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFi
   int candIndex = -1;
   for (const auto& cand : candidates) {
     ++candIndex;
-    LogTrace("MkFitOutputTrackConverter") << "Candidate " << candIndex << " pT " << cand.pT() << " eta " << cand.momEta()
-                                     << " phi " << cand.momPhi() << " chi2 " << cand.chi2();
+    LogTrace("MkFitOutputTrackConverter") << "Candidate " << candIndex << " pT " << cand.pT() << " eta "
+                                          << cand.momEta() << " phi " << cand.momPhi() << " chi2 " << cand.chi2();
 
     // state: check for basic quality first
     if (cand.state().invpT() > qualityMaxInvPt_ || (qualitySignPt_ && cand.state().invpT() < 0) ||
@@ -431,11 +426,10 @@ void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFi
                 thit.firstClusterRef().cluster_phase2OT()));
           }
         }
-        LogTrace("MkFitOutputTrackConverter") << "  pos " << recHits.back().globalPosition().x() << " "
-                                         << recHits.back().globalPosition().y() << " "
-                                         << recHits.back().globalPosition().z() << " mag2 "
-                                         << recHits.back().globalPosition().mag2() << " detid "
-                                         << recHits.back().geographicalId().rawId() << " cluster " << hitOnTrack.index;
+        LogTrace("MkFitOutputTrackConverter")
+            << "  pos " << recHits.back().globalPosition().x() << " " << recHits.back().globalPosition().y() << " "
+            << recHits.back().globalPosition().z() << " mag2 " << recHits.back().globalPosition().mag2() << " detid "
+            << recHits.back().geographicalId().rawId() << " cluster " << hitOnTrack.index;
         lastHitInvalid = false;
       }
     }
@@ -505,17 +499,17 @@ void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFi
     // Error is only rescaled for candidates propagated to first layer;
     // otherwise, candidates undergo backwardFit where error is already rescaled
     //if (mkFitOutput.propagatedToFirstLayer() && doErrorRescale_)
-      //fts.rescaleError(100.);
+    //fts.rescaleError(100.);
     auto tsosDet = mkFitOutput.propagatedToFirstLayer()
                        ? convertInnermostState(fts, recHits, propagatorAlong, propagatorOpposite)
-                       : backwardFit(fts, 
+                       : backwardFit(fts,
                                      recHits,
                                      propagatorAlong,
                                      propagatorOpposite,
                                      hitCloner,
                                      isPhase1,
                                      lastHitInvalid,
-                                     lastHitChanged); ///backward fit should be removed and not used here
+                                     lastHitChanged);  ///backward fit should be removed and not used here
     if (!tsosDet.first.isValid()) {
       edm::LogInfo("MkFitOutputTrackConverter")
           << "Backward fit of candidate " << candIndex << " failed, ignoring the candidate";
@@ -527,40 +521,46 @@ void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFi
 
     //to do
 
-     TrajectoryStateOnSurface tsosState = tsosDet.first;
+    TrajectoryStateOnSurface tsosState = tsosDet.first;
 
-      //if (mkFitOutput.propagatedToFirstLayer() && doErrorRescale_)
-        //tsosState.rescaleError(1 / 100.f);
+    //if (mkFitOutput.propagatedToFirstLayer() && doErrorRescale_)
+    //tsosState.rescaleError(1 / 100.f);
 
-      TSCBLBuilderNoMaterial tscblBuilder;
+    TSCBLBuilderNoMaterial tscblBuilder;
 
-      TrajectoryStateClosestToBeamLine tsAtClosestApproachTrackCand =
-          tscblBuilder(*tsosState.freeState(), *bs);  //as in TrackProducerAlgorithm
+    TrajectoryStateClosestToBeamLine tsAtClosestApproachTrackCand =
+        tscblBuilder(*tsosState.freeState(), *bs);  //as in TrackProducerAlgorithm
 
-      if (!(tsAtClosestApproachTrackCand.isValid())) {
-        edm::LogVerbatim("TrackBuilding") << "TrajectoryStateClosestToBeamLine not valid";
-        continue;
-      }
+    if (!(tsAtClosestApproachTrackCand.isValid())) {
+      edm::LogVerbatim("TrackBuilding") << "TrajectoryStateClosestToBeamLine not valid";
+      continue;
+    }
 
-      auto const& stateAtPCA = tsAtClosestApproachTrackCand.trackStateAtPCA();
-      auto v0 = stateAtPCA.position();
-      auto p = stateAtPCA.momentum();
-      math::XYZPoint pos(v0.x(), v0.y(), v0.z());
-      math::XYZVector mom(p.x(), p.y(), p.z());
+    auto const& stateAtPCA = tsAtClosestApproachTrackCand.trackStateAtPCA();
+    auto v0 = stateAtPCA.position();
+    auto p = stateAtPCA.momentum();
+    math::XYZPoint pos(v0.x(), v0.y(), v0.z());
+    math::XYZVector mom(p.x(), p.y(), p.z());
 
-      int ndof = -5;
-      for (auto const& recHit : recHits) ndof += recHit.dimension();
+    int ndof = -5;
+    for (auto const& recHit : recHits)
+      ndof += recHit.dimension();
 
-      //converted track
-      reco::Track trk(cand.chi2(), ndof, pos, mom, stateAtPCA.charge(), stateAtPCA.curvilinearError(), static_cast<reco::TrackBase::TrackAlgorithm>(algo_));
-      trk.appendHits(recHits.begin(), recHits.end(), tTopo);
+    //converted track
+    reco::Track trk(cand.chi2(),
+                    ndof,
+                    pos,
+                    mom,
+                    stateAtPCA.charge(),
+                    stateAtPCA.curvilinearError(),
+                    static_cast<reco::TrackBase::TrackAlgorithm>(algo_));
+    trk.appendHits(recHits.begin(), recHits.end(), tTopo);
 
-      trks.push_back(trk);
+    trks.push_back(trk);
 
-      //need to return also seed indices and hits in some way
-      seedIndices.push_back(cand.label());
-      hitsVecs.push_back(recHits);
-
+    //need to return also seed indices and hits in some way
+    seedIndices.push_back(cand.label());
+    hitsVecs.push_back(recHits);
   }
 }
 
@@ -593,7 +593,7 @@ std::pair<TrajectoryStateOnSurface, const GeomDet*> MkFitOutputTrackConverter::b
   const Propagator* trySecond = &propagatorOpposite;
   if (lastHitWasInvalid || lastHitWasChanged) {
     LogTrace("MkFitOutputTrackConverter") << "Propagating first opposite, then along, because lastHitWasInvalid? "
-                                     << lastHitWasInvalid << " or lastHitWasChanged? " << lastHitWasChanged;
+                                          << lastHitWasInvalid << " or lastHitWasChanged? " << lastHitWasChanged;
     std::swap(tryFirst, trySecond);
   } else {
     bool doSwitch = false;
@@ -661,7 +661,7 @@ std::pair<TrajectoryStateOnSurface, const GeomDet*> MkFitOutputTrackConverter::b
   Trajectory fitres = backFitter.fitOne(fakeSeed, firstHits, startingState, TrajectoryFitter::standard);
 
   LogDebug("MkFitOutputTrackConverter") << "using a backward fit of :" << firstHits.size() << " hits, starting from:\n"
-                                   << startingState << " to get the estimate of the initial state of the track.";
+                                        << startingState << " to get the estimate of the initial state of the track.";
 
   if (!fitres.isValid()) {
     edm::LogWarning("MkFitOutputTrackConverter") << "FitTester: first hits fit failed";
@@ -679,9 +679,9 @@ std::pair<TrajectoryStateOnSurface, const GeomDet*> MkFitOutputTrackConverter::b
   firstState.rescaleError(100.);
 
   LogDebug("MkFitOutputTrackConverter") << "the initial state is found to be:\n:" << firstState
-                                   << "\n it's field pointer is: " << firstState.magneticField()
-                                   << "\n the pointer from the state of the back fit was: "
-                                   << firstMeas.updatedState().magneticField();
+                                        << "\n it's field pointer is: " << firstState.magneticField()
+                                        << "\n the pointer from the state of the back fit was: "
+                                        << firstMeas.updatedState().magneticField();
 
   return std::make_pair(firstState, firstMeas.recHit()->det());
 }
@@ -706,7 +706,5 @@ std::pair<TrajectoryStateOnSurface, const GeomDet*> MkFitOutputTrackConverter::c
 
   return std::make_pair(tsosDouble.first, det);
 }
-
-
 
 DEFINE_FWK_MODULE(MkFitOutputTrackConverter);
