@@ -108,16 +108,14 @@ namespace mkfit {
     if (do_remove_duplicates && itconf.m_duplicate_cleaner) {
       itconf.m_duplicate_cleaner(builder.ref_tracks_nc(), itconf);
     }
-    std::cout << "fittracks" << std::endl;
-    if (itconf.m_track_algorithm == 4)
+
+    if (itconf.m_track_algorithm == 4)  //should avoid this for InitialStepPreSplitting
       builder.fittracks();
-    std::cout << "end fittracks" << std::endl;
+
     builder.export_tracks(out_tracks);
-    std::cout << "exported" << std::endl;
 
     builder.end_event();
     builder.release_memory();
-    std::cout << "ended iter" << std::endl;
   }
 
 }  // end namespace mkfit

@@ -1617,8 +1617,5 @@ namespace mkfit {
 #endif
       fit_tracks(mkfndr.get(), m.first, m.second, NN * ntimes, m.second.size());
     }
-
-    std::cout << "crash" << std::endl;
   }
-
 }  // end namespace mkfit
