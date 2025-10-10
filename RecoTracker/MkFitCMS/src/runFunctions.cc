@@ -109,8 +109,27 @@ namespace mkfit {
       itconf.m_duplicate_cleaner(builder.ref_tracks_nc(), itconf);
     }
 
-    if (itconf.m_final_fit)
-      builder.fittracks();
+    builder.export_tracks(out_tracks);
+
+    builder.end_event();
+    builder.release_memory();
+  }
+
+  void run_MkFitFit(const TrackerInfo &trackerInfo,
+                    const IterationConfig &itconf,
+                    const EventOfHits &eoh,
+                    MkBuilder &builder,
+                    const TrackVec &in_tracks,
+                    TrackVec &out_tracks,
+                    cpe_func cpe_function) {
+    MkJob job({trackerInfo, itconf, eoh, eoh.refBeamSpot(), nullptr, cpe_function});
+
+    builder.begin_event(&job, nullptr, __func__);
+
+    //move in_tracks to a container where they can be modified
+    builder.import_tracks(in_tracks);
+
+    builder.fittracks();
 
     builder.export_tracks(out_tracks);
 

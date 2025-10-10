@@ -23,5 +23,13 @@ namespace mkfit {
                         bool do_remove_duplicates,
                         cpe_func cpe_function);
 
+  void run_MkFitFit(const TrackerInfo &trackerInfo,
+                    const IterationConfig &itconf,
+                    const EventOfHits &eoh,
+                    MkBuilder &builder,
+                    const TrackVec &in_tracks,
+                    TrackVec &out_tracks,
+                    cpe_func cpe_function);
+
 }  // end namespace mkfit
 #endif

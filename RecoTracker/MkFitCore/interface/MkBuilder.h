@@ -59,6 +59,7 @@ namespace mkfit {
     void select_best_comb_cands(bool clear_m_tracks = false, bool remove_missing_hits = false);
     void export_best_comb_cands(TrackVec &out_vec, bool remove_missing_hits = false);
     void export_tracks(TrackVec &out_vec);
+    void import_tracks(const TrackVec &in_vec);
 
     void compactifyHitStorageForBestCand(bool remove_seed_hits, int backward_fit_min_hits) {
       m_event_of_comb_cands.compactifyHitStorageForBestCand(remove_seed_hits, backward_fit_min_hits);
@@ -119,7 +120,7 @@ namespace mkfit {
     //refit
 
     void fittracks();
-    void fit_tracks(MkFinder *mkfndr,
+    void fit_tracks(MkFitter *mkfitter,
                     int nFoundTracks,
                     std::vector<int> inds,
                     int start_trk,
