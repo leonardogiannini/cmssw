@@ -83,6 +83,23 @@ _HLTInitialStepSequenceMkFitTracking = cms.Sequence(
 from Configuration.ProcessModifiers.hltTrackingMkFitInitialStep_cff import hltTrackingMkFitInitialStep
 (~seedingLST & ~trackingLST & hltTrackingMkFitInitialStep).toReplaceWith(HLTInitialStepSequence,_HLTInitialStepSequenceMkFitTracking)
 
+from ..modules.hltInitialStepTrackCandidatesMkFitFit_cfi import *
+
+_HLTInitialStepSequenceMkFitFitTracking = cms.Sequence(
+    hltInitialStepSeeds
+    +hltSiPhase2RecHits
+    +HLTMkFitInputSequence
+    +hltInitialStepMkFitSeeds
+    +hltInitialStepTrackCandidatesMkFit
+    +hltInitialStepTrackCandidatesMkFitFit
+    +hltInitialStepTracks
+    +hltInitialStepTrackCutClassifier
+    +hltInitialStepTrackSelectionHighPurity
+)
+
+from Configuration.ProcessModifiers.hltTrackingMkFitFitInitialStep_cff import hltTrackingMkFitFitInitialStep
+(~seedingLST & ~trackingLST & hltTrackingMkFitFitInitialStep).toReplaceWith(HLTInitialStepSequence,_HLTInitialStepSequenceMkFitFitTracking)
+
 _HLTInitialStepSequenceSingleIterPatatrackLSTSeedingMkFitTracking = cms.Sequence(
      hltInitialStepSeeds
     +hltInitialStepSeedTracksLST

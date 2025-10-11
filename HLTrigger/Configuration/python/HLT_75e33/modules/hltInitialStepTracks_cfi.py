@@ -17,3 +17,27 @@ hltInitialStepTracks = cms.EDProducer("TrackProducer",
     useHitsSplitting = cms.bool(False),
     useSimpleMF = cms.bool(False)
 )
+
+_hltInitialStepTracksMkFitFit = cms.EDProducer("MkFitOutputTrackConverter",
+    mightGet = cms.optional.untracked.vstring,
+    mkFitEventOfHits = cms.InputTag("hltMkFitEventOfHits"),
+    mkFitPixelHits = cms.InputTag("hltMkFitSiPixelHits"),
+    mkFitSeeds = cms.InputTag("hltInitialStepMkFitSeeds"),
+    mkFitStripHits = cms.InputTag("hltMkFitSiPhase2Hits"),
+    propagatorAlong = cms.ESInputTag("","PropagatorWithMaterial"),
+    propagatorOpposite = cms.ESInputTag("","PropagatorWithMaterialOpposite"),
+    qualityMaxInvPt = cms.double(100),
+    qualityMaxPosErr = cms.double(100),
+    qualityMaxR = cms.double(120),
+    qualityMaxZ = cms.double(280),
+    qualityMinTheta = cms.double(0.01),
+    qualitySignPt = cms.bool(True),
+    seeds = cms.InputTag("hltInitialStepSeeds"),
+    src = cms.InputTag("hltInitialStepTrackCandidatesMkFitFit"),
+    ttrhBuilder = cms.ESInputTag("","WithTrackAngle"),
+    measurementTrackerEvent = cms.InputTag("hltMeasurementTrackerEvent")
+)
+
+from Configuration.ProcessModifiers.hltTrackingMkFitFitInitialStep_cff import hltTrackingMkFitFitInitialStep
+
+(hltTrackingMkFitFitInitialStep).toReplaceWith(hltInitialStepTracks, _hltInitialStepTracksMkFitFit)

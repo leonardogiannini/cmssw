@@ -146,7 +146,7 @@ MkFitOutputTrackConverter::MkFitOutputTrackConverter(edm::ParameterSet const& iC
       pixelClusterIndexToHitToken_{consumes(iConfig.getParameter<edm::InputTag>("mkFitPixelHits"))},
       stripClusterIndexToHitToken_{consumes(iConfig.getParameter<edm::InputTag>("mkFitStripHits"))},
       mkfitSeedToken_{consumes<MkFitSeedWrapper>(iConfig.getParameter<edm::InputTag>("mkFitSeeds"))},
-      tracksToken_{consumes<MkFitOutputWrapper>(iConfig.getParameter<edm::InputTag>("tracks"))},
+      tracksToken_{consumes<MkFitOutputWrapper>(iConfig.getParameter<edm::InputTag>("src"))},
       seedToken_{consumes<edm::View<TrajectorySeed>>(iConfig.getParameter<edm::InputTag>("seeds"))},
       propagatorAlongToken_{
           esConsumes<Propagator, TrackingComponentsRecord>(iConfig.getParameter<edm::ESInputTag>("propagatorAlong"))},
@@ -181,7 +181,7 @@ void MkFitOutputTrackConverter::fillDescriptions(edm::ConfigurationDescriptions&
   desc.add("mkFitPixelHits", edm::InputTag{"mkFitSiPixelHits"});
   desc.add("mkFitStripHits", edm::InputTag{"mkFitSiStripHits"});
   desc.add("mkFitSeeds", edm::InputTag{"mkFitSeedConverter"});
-  desc.add("tracks", edm::InputTag{"mkFitProducer"});
+  desc.add("src", edm::InputTag{"mkFitProducer"});
   desc.add("seeds", edm::InputTag{"initialStepSeeds"});
   desc.add("ttrhBuilder", edm::ESInputTag{"", "WithTrackAngle"});
   desc.add("propagatorAlong", edm::ESInputTag{"", "PropagatorWithMaterial"});
