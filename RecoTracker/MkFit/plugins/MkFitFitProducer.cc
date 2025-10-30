@@ -56,6 +56,9 @@ private:
   const edm::ESGetToken<PixelClusterParameterEstimator, TkPixelCPERecord> pixelCPEToken_;
   const edm::EDGetTokenT<MkFitClusterIndexToHit> pixelClusterIndexToHitToken_;
   const edm::EDGetTokenT<MkFitOutputWrapper> tracksToken_;
+  const bool algoCandCutSelection_;
+  const float algoCandMinPtCut_;
+  const int algoCandMinNHitsCut_;
   const edm::EDPutTokenT<MkFitOutputWrapper> putToken_;
   const bool mkFitSilent_;
   const bool limitConcurrency_;
@@ -70,6 +73,9 @@ MkFitFitProducer::MkFitFitProducer(edm::ParameterSet const& iConfig)
       pixelCPEToken_(esConsumes(edm::ESInputTag("", iConfig.getParameter<std::string>("pixelCPE")))),
       pixelClusterIndexToHitToken_{consumes(iConfig.getParameter<edm::InputTag>("mkFitPixelHits"))},
       tracksToken_{consumes<MkFitOutputWrapper>(iConfig.getParameter<edm::InputTag>("tracks"))},
+      algoCandCutSelection_{bool(iConfig.getParameter<bool>("candCutSel"))},
+      algoCandMinPtCut_{float(iConfig.getParameter<double>("candMinPtCut"))},
+      algoCandMinNHitsCut_{iConfig.getParameter<int>("candMinNHitsCut")},
       putToken_{produces<MkFitOutputWrapper>()},
       mkFitSilent_{iConfig.getUntrackedParameter<bool>("mkFitSilent")},
       limitConcurrency_{iConfig.getUntrackedParameter<bool>("limitConcurrency")} {
@@ -96,6 +102,11 @@ void MkFitFitProducer::fillDescriptions(edm::ConfigurationDescriptions& descript
           "Use tbb::task_arena to limit the internal concurrency to 1; useful only for timing studies when measuring "
           "the module time");
 
+  //emulate MkFitOutputConverter
+  desc.add<bool>("candCutSel", false)->setComment("flag used to trigger cut-based selection at cand level");
+  desc.add<double>("candMinPtCut", 0)->setComment("min pt cut at cand level");
+  desc.add<int>("candMinNHitsCut", 0)->setComment("min cut on number of hits at cand level");
+
   descriptions.add("MkFitFitProducerDefault", desc);
 }
 
@@ -115,7 +126,17 @@ void MkFitFitProducer::produce(edm::StreamID iID, edm::Event& iEvent, const edm:
   const auto& mkFitIterConfig = iSetup.getData(mkFitIterConfigToken_);
 
   mkfit::TrackVec tracks;
-  const auto& intracks = iEvent.get(tracksToken_).tracks();
+  auto intracks = iEvent.get(tracksToken_).tracks();
+
+  //emulate MkFitOutputConverter
+  if (algoCandCutSelection_) {
+    mkfit::TrackVec reducedInput;
+    for (auto const& t : intracks) {
+      if (!(t.pT() < algoCandMinPtCut_ || t.nTotalHits() < algoCandMinPtCut_))
+        reducedInput.push_back(t);
+    }
+    intracks.swap(reducedInput);
+  }
 
   auto cpe = [&](int orig_hit_idx, float ltp_arr[6], float(&hit_arr)[5]) -> bool {
     auto const& hit = dynamic_cast<SiPixelRecHit const&>(*hits[orig_hit_idx]);

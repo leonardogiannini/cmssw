@@ -146,7 +146,7 @@ MkFitOutputTrackConverter::MkFitOutputTrackConverter(edm::ParameterSet const& iC
       pixelClusterIndexToHitToken_{consumes(iConfig.getParameter<edm::InputTag>("mkFitPixelHits"))},
       stripClusterIndexToHitToken_{consumes(iConfig.getParameter<edm::InputTag>("mkFitStripHits"))},
       mkfitSeedToken_{consumes<MkFitSeedWrapper>(iConfig.getParameter<edm::InputTag>("mkFitSeeds"))},
-      tracksToken_{consumes<MkFitOutputWrapper>(iConfig.getParameter<edm::InputTag>("tracks"))},
+      tracksToken_{consumes<MkFitOutputWrapper>(iConfig.getParameter<edm::InputTag>("src"))},
       seedToken_{consumes<edm::View<TrajectorySeed>>(iConfig.getParameter<edm::InputTag>("seeds"))},
       propagatorAlongToken_{
           esConsumes<Propagator, TrackingComponentsRecord>(iConfig.getParameter<edm::ESInputTag>("propagatorAlong"))},
@@ -181,7 +181,7 @@ void MkFitOutputTrackConverter::fillDescriptions(edm::ConfigurationDescriptions&
   desc.add("mkFitPixelHits", edm::InputTag{"mkFitSiPixelHits"});
   desc.add("mkFitStripHits", edm::InputTag{"mkFitSiStripHits"});
   desc.add("mkFitSeeds", edm::InputTag{"mkFitSeedConverter"});
-  desc.add("tracks", edm::InputTag{"mkFitProducer"});
+  desc.add("src", edm::InputTag{"mkFitProducer"});
   desc.add("seeds", edm::InputTag{"initialStepSeeds"});
   desc.add("ttrhBuilder", edm::ESInputTag{"", "WithTrackAngle"});
   desc.add("propagatorAlong", edm::ESInputTag{"", "PropagatorWithMaterial"});
@@ -436,7 +436,6 @@ void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFi
       }
     }
 
-    const auto lastHitId = recHits.back().geographicalId();
     // MkFit hits are *not* in the order of propagation, sort by 3D radius for now (as we don't have loopers)
     // TODO: Improve the sorting (extract keys? maybe even bubble sort would work well as the hits are almost in the correct order)
     recHits.sort([&tTopo, &isPhase1](const auto& a, const auto& b) {
@@ -489,19 +488,6 @@ void MkFitOutputTrackConverter::convertCandidates(const MkFitOutputWrapper& mkFi
         return std::abs(apos.z()) < std::abs(bpos.z());
       }
     });
-
-    const bool lastHitChanged = (recHits.back().geographicalId() != lastHitId);  // TODO: make use of the bools
-
-    //     for (auto &recHit: recHits){
-    //
-    //       std::cout  << "sorted  pos " << recHit.globalPosition().x() << " " << recHit.globalPosition().y() << " "
-    //             << recHit.globalPosition().z() << " mag2 " << recHit.globalPosition().mag2() << " detid "
-    //             << recHit.geographicalId().rawId() << " layer "<< tTopo.layer(recHit.geographicalId()) << " layer "<< mkFitGeom.mkFitLayerNumber(recHit.geographicalId()) << std::endl;
-    //
-    //
-    //     }
-    //     std::cout << tTopo.layer(recHits.front().geographicalId()) << std::endl;
-    //     std::cout << tTopo.layer(recHits.back().geographicalId()) << std::endl;
 
     // seed
     const auto seedIndex = cand.label();
