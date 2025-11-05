@@ -42,10 +42,10 @@ _hltInitialStepTracksMkFitFit = cms.EDProducer("MkFitOutputTrackConverter",
 _hltInitialStepTracksMkFitFitLSTSeeds = _hltInitialStepTracksMkFitFit.clone(seeds = "hltInitialStepTrajectorySeedsLST")
 
 from Configuration.ProcessModifiers.hltTrackingMkFitInitialStep_cff import hltTrackingMkFitInitialStep
-from Configuration.ProcessModifiers.hltTrackingMkFitFit_cff import hltTrackingMkFitFit
-(hltTrackingMkFitFit & hltTrackingMkFitInitialStep).toReplaceWith(hltInitialStepTracks, _hltInitialStepTracksMkFitFit)
+from Configuration.ProcessModifiers.trackingMkFitFit_cff import trackingMkFitFit
+(hltTrackingMkFitInitialStep & trackingMkFitFit).toReplaceWith(hltInitialStepTracks, _hltInitialStepTracksMkFitFit)
 
 from Configuration.ProcessModifiers.singleIterPatatrack_cff import singleIterPatatrack
 from Configuration.ProcessModifiers.trackingLST_cff import trackingLST
 from Configuration.ProcessModifiers.seedingLST_cff import seedingLST
-(singleIterPatatrack & trackingLST & seedingLST & hltTrackingMkFitFit & hltTrackingMkFitInitialStep).toReplaceWith(hltInitialStepTracks, _hltInitialStepTracksMkFitFitLSTSeeds)
+(singleIterPatatrack & trackingLST & seedingLST & hltTrackingMkFitInitialStep & trackingMkFitFit).toReplaceWith(hltInitialStepTracks, _hltInitialStepTracksMkFitFitLSTSeeds)

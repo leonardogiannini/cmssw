@@ -142,6 +142,6 @@ _HLTInitialStepSequenceSingleIterPatatrackLSTSeedingMkFitFitTracking = cms.Seque
     +hltInitialStepTracks
 )
 
-from Configuration.ProcessModifiers.hltTrackingMkFitFit_cff import hltTrackingMkFitFit
-(~seedingLST & ~trackingLST & hltTrackingMkFitInitialStep & hltTrackingMkFitFit).toReplaceWith(HLTInitialStepSequence,_HLTInitialStepSequenceMkFitFitTracking)
-(singleIterPatatrack & trackingLST & seedingLST & hltTrackingMkFitInitialStep & hltTrackingMkFitFit).toReplaceWith(HLTInitialStepSequence, _HLTInitialStepSequenceSingleIterPatatrackLSTSeedingMkFitFitTracking)
+from Configuration.ProcessModifiers.trackingMkFitFit_cff import trackingMkFitFit
+(~seedingLST & ~trackingLST & hltTrackingMkFitInitialStep & trackingMkFitFit).toReplaceWith(HLTInitialStepSequence,_HLTInitialStepSequenceMkFitFitTracking)
+(singleIterPatatrack & trackingLST & seedingLST & hltTrackingMkFitInitialStep & trackingMkFitFit).toReplaceWith(HLTInitialStepSequence, _HLTInitialStepSequenceSingleIterPatatrackLSTSeedingMkFitFitTracking)
