@@ -129,6 +129,7 @@ namespace {
                                     const MPlexQF& __restrict__ s,
                                     MPlexLL& __restrict__ errorProp,
                                     const int N_proc,
+                                    const bool curvError,
                                     const PropagationFlags& pf) {
     //iteration should return the path length s, then update parameters and compute errors
 
@@ -291,6 +292,14 @@ namespace {
     //now we need jacobians to convert to/from curvilinear and CCS
     // code from TrackState::jacobianCCSToCurvilinear
     MPlex56 jacCCS2Curv(0.0f);
+    if(curvError){
+      jacCCS2Curv.aij(0, 0) = 1.f;
+      jacCCS2Curv.aij(1, 1) = 1.f;
+      jacCCS2Curv.aij(2, 2) = 1.f;
+      jacCCS2Curv.aij(3, 3) = 1.f;
+      jacCCS2Curv.aij(4, 4) = 1.f;
+    }
+    else{
     jacCCS2Curv.aij(0, 3) = mpt::negate_if_ltz(sinT, inChg);
     jacCCS2Curv.aij(0, 5) = mpt::negate_if_ltz(cosT * inPar(3, 0), inChg);
     jacCCS2Curv.aij(1, 5) = -1.f;
@@ -300,9 +309,17 @@ namespace {
     jacCCS2Curv.aij(4, 0) = -cosPin * cosT;
     jacCCS2Curv.aij(4, 1) = -sinPin * cosT;
     jacCCS2Curv.aij(4, 2) = sinT;
-
+    }
     // code from TrackState::jacobianCurvilinearToCCS
     MPlex65 jacCurv2CCS(0.0f);
+    if(curvError){
+      jacCurv2CCS.aij(0, 0) = 1.f;
+      jacCurv2CCS.aij(1, 1) = 1.f;
+      jacCurv2CCS.aij(2, 2) = 1.f;
+      jacCurv2CCS.aij(3, 3) = 1.f;
+      jacCurv2CCS.aij(4, 4) = 1.f;
+    }
+    else{
     jacCurv2CCS.aij(0, 3) = -sinPout;
     jacCurv2CCS.aij(0, 4) = -cosT * cosPout;
     jacCurv2CCS.aij(1, 3) = cosPout;
@@ -312,7 +329,7 @@ namespace {
     jacCurv2CCS.aij(3, 1) = outPar(3, 0) * cosT / sinT;
     jacCurv2CCS.aij(4, 2) = 1.f;
     jacCurv2CCS.aij(5, 1) = -1.f;
-
+    }
     //need to compute errorProp = jacCurv2CCS*errorPropCurv*jacCCS2Curv
     MPlex65 tmp;
     JacErrPropCurv1(jacCurv2CCS, errorPropCurv, tmp);
@@ -367,13 +384,12 @@ namespace {
              int q,
              float kinv) {
     const float A = delta0 * eta0 + delta1 * eta1 + delta2 * eta2;
-    const float ip = sinT * ipt;
-    const float p0[3] = {cosP / ipt, sinP / ipt, cosT / ip};
-    const float B = (p0[0] * eta0 + p0[1] * eta1 + p0[2] * eta2) * ip;
-    const float rho = kinv * ip;
-    const float C = -(eta0 * p0[1] - eta1 * p0[0]) * rho * 0.5f * ip;
+    const float p0[3] = {cosP * sinT, sinP * sinT, cosT}; // multiplied ip here instead of B,C
+    const float B = (p0[0] * eta0 + p0[1] * eta1 + p0[2] * eta2) ;
+    const float rho = kinv * sinT * ipt;
+    const float C = -(eta0 * p0[1] - eta1 * p0[0]) * rho * 0.5f ;
     const float sqb2m4ac = std::sqrt(B * B - 4.f * A * C);
-    const float s1 = (-B + sqb2m4ac) * 0.5f / C;
+    const float s1 = 2.f*A / (-B - std::copysign(B, std::sqrt(B*B - 4.f*A*C)));
     const float s2 = (-B - sqb2m4ac) * 0.5f / C;
 #ifdef DEBUG
     if (debug)
@@ -392,6 +408,7 @@ namespace {
                          MPlexLL& __restrict__ errorProp,
                          MPlexQI& __restrict__ outFailFlag,  // expected to be initialized to 0
                          const int N_proc,
+                         const bool curvError,
                          const PropagationFlags& pf) {
     namespace mpt = Matriplex;
     using MPF = MPlexQF;
@@ -496,7 +513,7 @@ namespace {
     if (debug)
       std::cout << "s=" << s[0] << std::endl;
 #endif
-    parsAndErrPropFromPathL_impl(inPar, inChg, outPar, kinv, s, errorProp, N_proc, pf);
+    parsAndErrPropFromPathL_impl(inPar, inChg, outPar, kinv, s, errorProp, N_proc, curvError, pf);
   }
 
 }  // namespace
@@ -514,11 +531,12 @@ namespace mkfit {
                     MPlexLL& errorProp,
                     MPlexQI& outFailFlag,
                     const int N_proc,
+                    const bool curvError,
                     const PropagationFlags& pflags) {
     errorProp.setVal(0.f);
     outFailFlag.setVal(0.f);
 
-    helixAtPlane_impl(inPar, inChg, plPnt, plNrm, pathL, outPar, errorProp, outFailFlag, N_proc, pflags);
+    helixAtPlane_impl(inPar, inChg, plPnt, plNrm, pathL, outPar, errorProp, outFailFlag, N_proc, curvError, pflags);
   }
 
   void propagateHelixToPlaneMPlex(const MPlexLS& inErr,
@@ -531,6 +549,7 @@ namespace mkfit {
                                   MPlexQI& outFailFlag,
                                   const int N_proc,
                                   const PropagationFlags& pflags,
+                                  const bool curvError,
                                   const MPlexQI* noMatEffPtr) {
     // debug = true;
 
@@ -540,7 +559,7 @@ namespace mkfit {
     MPlexQF pathL{0.0f};
     MPlexLL errorProp{0.0f};
 
-    helixAtPlane(inPar, inChg, plPnt, plNrm, pathL, outPar, errorProp, outFailFlag, N_proc, pflags);
+    helixAtPlane(inPar, inChg, plPnt, plNrm, pathL, outPar, errorProp, outFailFlag, N_proc, curvError, pflags);
 
 #ifdef DEBUG
     for (int n = 0; n < N_proc; ++n) {

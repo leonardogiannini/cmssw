@@ -108,6 +108,10 @@ namespace mkfit {
 
     void convertFromGlbCurvilinearToCCS();
     void convertFromCCSToGlbCurvilinear();
+
+    void convertFromGlbCurvilinearToCCSError();
+    void convertFromCCSToGlbCurvilinearError();
+
     //last row/column are zeros
     SMatrix66 jacobianCCSToCurvilinear(float invpt, float cosP, float sinP, float cosT, float sinT, short charge) const;
     SMatrix66 jacobianCurvilinearToCCS(float px, float py, float pz, short charge) const;
@@ -587,6 +591,10 @@ namespace mkfit {
       return layers;
     }
 
+    //dangerous modification of internal state
+    void modifyStateErrorCCSToCurv() { state_.convertFromCCSToGlbCurvilinearError(); }
+    void modifyStateErrorCurvToCCS() { state_.convertFromGlbCurvilinearToCCSError(); }
+
   private:
     std::vector<HitOnTrack> hitsOnTrk_;
   };
@@ -664,6 +672,7 @@ namespace mkfit {
   void print(const TrackState& s);
   void print(std::string pfx, int itrack, const Track& trk, bool print_hits = false);
   void print(std::string pfx, const TrackState& s);
+
 
 }  // end namespace mkfit
 #endif

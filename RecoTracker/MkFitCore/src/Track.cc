@@ -107,6 +107,26 @@ namespace mkfit {
     errors = ROOT::Math::Similarity(jac, errors);
   }
 
+  void TrackState::convertFromGlbCurvilinearToCCSError(){
+    const float px = parameters.At(3);
+    const float py = parameters.At(4);
+    const float pz = parameters.At(5);
+    SMatrix66 jac = jacobianCurvilinearToCCS(px, py, pz, charge);
+    errors = ROOT::Math::Similarity(jac, errors);
+  }
+
+  void TrackState::convertFromCCSToGlbCurvilinearError(){
+    const float invpt = parameters.At(3);
+    const float phi = parameters.At(4);
+    const float theta = parameters.At(5);
+    float cosP = std::cos(phi);
+    float sinP = std::sin(phi);
+    float cosT = std::cos(theta);
+    float sinT = std::sin(theta);
+    SMatrix66 jac = jacobianCCSToCurvilinear(invpt, cosP, sinP, cosT, sinT, charge);
+    errors = ROOT::Math::Similarity(jac, errors);
+  }
+
   SMatrix66 TrackState::jacobianCCSToCurvilinear(
       float invpt, float cosP, float sinP, float cosT, float sinT, short charge) const {
     SMatrix66 jac;

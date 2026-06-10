@@ -167,6 +167,7 @@ namespace mkfit {
                                             const int N_proc,
                                             const PropagationFlags& propFlags,
                                             const bool propToHit,
+                                            const bool curvError = false,
                                             const MPlexQI* noMatEffPtr = nullptr,
                                             const MPlexQI* doCPE = nullptr,
                                             cpe_func cpe_corr_func = nullptr);
@@ -224,6 +225,7 @@ namespace mkfit {
                                  MPlexLV& outPar,
                                  MPlexQF& outChi2,
                                  const int N_proc,
+                                 const bool curvError = false,
                                  const MPlexQI* doCPE = nullptr,
                                  cpe_func cpe_corr_func = nullptr);
 

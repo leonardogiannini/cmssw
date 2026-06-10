@@ -83,7 +83,8 @@ namespace mkfit {
                             const MPlexHV& plNrm,
                             MPlexLS& outErr,
                             MPlexLV& outPar,
-                            const int N_proc) {
+                            const int N_proc,
+                            const bool curvError) {
 #pragma omp simd
     for (int n = 0; n < NN; ++n) {
       if (n >= N_proc)
@@ -122,6 +123,15 @@ namespace mkfit {
       // const float thetaMSC2 = thetaMSC*thetaMSC;
       const float thetaMSC = 0.0136f * (1.f + 0.038f * vdt::fast_logf(radL)) / (beta * p);  // eq 32.15
       const float thetaMSC2 = thetaMSC * thetaMSC * radL;
+      if (curvError){
+//        if /*constexpr*/ (Config::usePtMultScat) {
+//         rederive because don't know correlation to q/p
+//       } else {
+        outErr.At(n, 1, 1) += thetaMSC2; //lambda
+        outErr.At(n, 2, 2) += thetaMSC2; //phi
+//       }
+      }
+      else{
       if /*constexpr*/ (Config::usePtMultScat) {
         outErr.At(n, 3, 3) += thetaMSC2 * pz * pz * ipt2 * ipt2;
         outErr.At(n, 3, 5) -= thetaMSC2 * pz * ipt2;
@@ -130,6 +140,7 @@ namespace mkfit {
       } else {
         outErr.At(n, 4, 4) += thetaMSC2;
         outErr.At(n, 5, 5) += thetaMSC2;
+      }
       }
       //std::cout << "beta=" << beta << " p=" << p << std::endl;
       //std::cout << "multiple scattering thetaMSC=" << thetaMSC << " thetaMSC2=" << thetaMSC2 << " radL=" << radL << std::endl;
@@ -159,7 +170,8 @@ namespace mkfit {
       const float dP = propSign.constAt(n, 0, 0) * dEdx / beta;
       outPar.At(n, 3, 0) = p / (std::max(p - dP, 0.001f) * pt);  //stay above 1MeV
       //assume 100% uncertainty
-      outErr.At(n, 3, 3) += dP * dP / (p2 * pt * pt);
+      if(curvError) outErr.At(n, 0, 0) += dP * dP / (p2 * p2); //increase unc. on q/p
+      else outErr.At(n, 3, 3) += dP * dP / (p2 * pt * pt);
     }
   }
 

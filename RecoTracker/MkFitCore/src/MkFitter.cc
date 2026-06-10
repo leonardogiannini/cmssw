@@ -22,7 +22,7 @@ namespace mkfit {
     int itrack = 0;
 
     for (int i = beg; i < end; ++i, ++itrack) {
-      const Track &trk = cands[inds[i]];
+      Track &trk = cands[inds[i]];
       m_Chg(itrack, 0, 0) = trk.charge();
       m_CurHit[itrack] = trk.nTotalHits() - 1;  //I have to use in reverse... otherwise n hits unknown
       m_HoTArr[itrack] = trk.getHitsOnTrackArray();
@@ -30,6 +30,7 @@ namespace mkfit {
       std::cout << "trk pt " << trk.pT() << " trk eta " << trk.momEta() << std::endl;
       std::cout << "trk nTotalHits " << trk.nTotalHits() << " trk nFoundHits " << trk.nFoundHits() << std::endl;
 #endif
+//       trk.modifyStateErrorCCSToCurv(); //dangerous
       mtp.addInput(trk);
     }
 
@@ -123,6 +124,7 @@ namespace mkfit {
 #endif
 
       trk.setChi2(m_Chi2(itrack, 0, 0));
+//       if(bkw) trk.modifyStateErrorCurvToCCS(); //dangerous
     }
   }
 
@@ -348,6 +350,7 @@ namespace mkfit {
                                            N_proc,
                                            *refit_flags,
                                            true,
+                                           false,
                                            &no_mat_effs,
                                            &do_cpe,
                                            m_cpe_corr_func);
@@ -513,6 +516,7 @@ namespace mkfit {
                                            N_proc,
                                            *refit_flags,
                                            true,
+                                           false,
                                            &no_mat_effs,
                                            &do_cpe,
                                            m_cpe_corr_func);

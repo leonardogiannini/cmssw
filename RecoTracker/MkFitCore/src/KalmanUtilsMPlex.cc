@@ -1311,6 +1311,7 @@ namespace mkfit {
       const int N_proc,
       const PropagationFlags& propFlags,
       const bool propToHit,
+      const bool curvError,
       const MPlexQI* noMatEffPtr,
       const MPlexQI* doCPE,
       cpe_func cpe_corr_func) {  //last args are const MkJob*,  const MPlexQI* noMatEffPtr, const MPlexQI* doCPE (?)
@@ -1319,7 +1320,7 @@ namespace mkfit {
       MPlexLV propPar;
 
       propagateHelixToPlaneMPlex(
-          psErr, psPar, Chg, plPnt, plNrm, propErr, propPar, outFailFlag, N_proc, propFlags, noMatEffPtr);
+          psErr, psPar, Chg, plPnt, plNrm, propErr, propPar, outFailFlag, N_proc, propFlags, curvError, noMatEffPtr);
 
       kalmanOperationPlaneLocal(KFO_Calculate_Chi2 | KFO_Update_Params | KFO_Local_Cov,
                                 propErr,
@@ -1334,6 +1335,7 @@ namespace mkfit {
                                 outPar,
                                 outChi2,
                                 N_proc,
+                                curvError,
                                 doCPE,
                                 cpe_corr_func);
 
@@ -1451,6 +1453,7 @@ namespace mkfit {
                                  MPlexLV& outPar,
                                  MPlexQF& outChi2,
                                  const int N_proc,
+                                 const bool curvError,
                                  const MPlexQI* doCPE,
                                  cpe_func cpe_corr_func) {
 #ifdef DEBUG
@@ -1606,6 +1609,14 @@ namespace mkfit {
     MPlex56 jacCCS2Curv(0.f);
 #pragma omp simd
     for (int n = 0; n < NN; ++n) {
+      if(curvError){
+        jacCCS2Curv(n, 0, 0) = 1.f;
+        jacCCS2Curv(n, 1, 1) = 1.f;
+        jacCCS2Curv(n, 2, 2) = 1.f;
+        jacCCS2Curv(n, 3, 3) = 1.f;
+        jacCCS2Curv(n, 4, 4) = 1.f;
+      }
+      else{
       jacCCS2Curv(n, 0, 3) = inChg(n, 0, 0) * sinT(n, 0, 0);
       jacCCS2Curv(n, 0, 5) = inChg(n, 0, 0) * cosT(n, 0, 0) * psPar(n, 3, 0);
       jacCCS2Curv(n, 1, 5) = -1.f;
@@ -1615,6 +1626,7 @@ namespace mkfit {
       jacCCS2Curv(n, 4, 0) = -cosP(n, 0, 0) * cosT(n, 0, 0);
       jacCCS2Curv(n, 4, 1) = -sinP(n, 0, 0) * cosT(n, 0, 0);
       jacCCS2Curv(n, 4, 2) = sinT(n, 0, 0);
+      }
     }
 
     //now we need the jacobian from curv to local
@@ -1878,6 +1890,14 @@ namespace mkfit {
       MPlex65 jacCurv2CCS(0.f);
 #pragma omp simd
       for (int n = 0; n < NN; ++n) {
+        if(curvError){
+          jacCurv2CCS(n, 0, 0) = 1.f;
+          jacCurv2CCS(n, 1, 1) = 1.f;
+          jacCurv2CCS(n, 2, 2) = 1.f;
+          jacCurv2CCS(n, 3, 3) = 1.f;
+          jacCurv2CCS(n, 4, 4) = 1.f;
+        }
+        else{
         jacCurv2CCS(n, 0, 3) = -sinP(n, 0, 0);
         jacCurv2CCS(n, 0, 4) = -cosT(n, 0, 0) * cosP(n, 0, 0);
         jacCurv2CCS(n, 1, 3) = cosP(n, 0, 0);
@@ -1887,6 +1907,7 @@ namespace mkfit {
         jacCurv2CCS(n, 3, 1) = outPar(n, 3, 0) * cosT(n, 0, 0) / sinT(n, 0, 0);
         jacCurv2CCS(n, 4, 2) = 1.f;
         jacCurv2CCS(n, 5, 1) = -1.f;
+        }
         if (std::signbit(lp_upd(n, 0, 0)) != std::signbit(lp(n, 0, 0))) {
           outPar(n, 0, 3) = -outPar(n, 0, 3);
           jacCurv2CCS(n, 3, 0) = -jacCurv2CCS(n, 3, 0);

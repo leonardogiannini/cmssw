@@ -97,6 +97,7 @@ namespace mkfit {
                     MPlexLL& errorProp,
                     MPlexQI& outFailFlag,
                     const int N_proc,
+                    const bool curvError,
                     const PropagationFlags& pflags);
 
   void propagateHelixToPlaneMPlex(const MPlexLS& inErr,
@@ -109,6 +110,7 @@ namespace mkfit {
                                   MPlexQI& outFailFlag,
                                   const int N_proc,
                                   const PropagationFlags& pflags,
+                                  const bool curvError = false,
                                   const MPlexQI* noMatEffPtr = nullptr);
 
   // Common functions: PropagationMPlexCommon.cc
@@ -119,7 +121,8 @@ namespace mkfit {
                             const MPlexHV& plNrm,
                             MPlexLS& outErr,
                             MPlexLV& outPar,
-                            const int N_proc);
+                            const int N_proc,
+                            const bool curvError = false);
 
   void MultHelixPropFull(const MPlexLL& A, const MPlexLS& B, MPlexLL& C);
   void MultHelixPropTranspFull(const MPlexLL& A, const MPlexLL& B, MPlexLS& C);

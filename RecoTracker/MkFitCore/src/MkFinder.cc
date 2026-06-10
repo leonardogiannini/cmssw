@@ -2554,7 +2554,7 @@ namespace mkfit {
       m_FailFlag.setVal(0);
       propagateHelixToPlaneMPlex(m_Err[iC], m_Par[iC], m_Chg, plPnt, plNrm,
                                  m_Err[iP], m_Par[iP], m_FailFlag,
-                                 N_proc, m_prop_config->backward_fit_pflags, nullptr);
+                                 N_proc, m_prop_config->backward_fit_pflags, false, nullptr);
       kalmanOperationPlaneLocal(KFO_Calculate_Chi2 | KFO_Update_Params | KFO_Local_Cov,
                                 m_Err[iP], m_Par[iP], m_Chg, m_msErr, m_msPar, plNrm, plDir, plPnt,
                                 m_Err[iC], m_Par[iC], tmp_chi2, N_proc);
