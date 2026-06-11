@@ -30,7 +30,13 @@ namespace mkfit {
       std::cout << "trk pt " << trk.pT() << " trk eta " << trk.momEta() << std::endl;
       std::cout << "trk nTotalHits " << trk.nTotalHits() << " trk nFoundHits " << trk.nFoundHits() << std::endl;
 #endif
-//       trk.modifyStateErrorCCSToCurv(); //dangerous
+      auto ts_curv_ckf = trk.state();
+      //std::cout << "upd pars(MK,CCS)=\n" << ts_curv_ckf.parameters << std::endl;
+      //std::cout << "upd errors(MK,CCS)=\n" << ts_curv_ckf.errors<< std::endl;
+      //trk.modifyStateErrorCCSToCurv(); //dangerous
+      //auto ts_curv_ckf2 = trk.state();
+      //std::cout << "upd pars(MK,CCS)=\n" << ts_curv_ckf2.parameters << std::endl;
+      //std::cout << "upd errors(MK,CCS)=\n" << ts_curv_ckf2.errors<< std::endl;
       mtp.addInput(trk);
     }
 
@@ -124,7 +130,7 @@ namespace mkfit {
 #endif
 
       trk.setChi2(m_Chi2(itrack, 0, 0));
-//       if(bkw) trk.modifyStateErrorCurvToCCS(); //dangerous
+      //if(bkw) trk.modifyStateErrorCurvToCCS(); //dangerous
     }
   }
 

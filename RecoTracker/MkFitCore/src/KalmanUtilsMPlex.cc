@@ -1677,14 +1677,38 @@ namespace mkfit {
 
     // jacobian for converting from CCS to Loc (via Curv)
     MPlex56 jacCCS2Loc;
-    JacCCS2Loc(jacCurv2Loc, jacCCS2Curv, jacCCS2Loc);
+    if (curvError) Matriplex::multiplyGeneral(jacCurv2Loc, jacCCS2Curv, jacCCS2Loc);
+    else JacCCS2Loc(jacCurv2Loc, jacCCS2Curv, jacCCS2Loc);
 
     // local error!
     MPlex5S psErrLoc;
     MPlex56 temp56;
+    if(curvError){
+#pragma omp simd
+    for (int n = 0; n < NN; ++n) {
+      for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 6; ++j) {
+          temp56(n, i, j)=0;
+          for (int k = 0; k < 6; ++k)
+            temp56(n, i, j) += jacCCS2Loc.constAt(n, i, k) * psErr.constAt(n, k, j);
+        }
+      }
+    }
+#pragma omp simd
+    for (int n = 0; n < NN; ++n) {
+      for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < 5; ++j) {
+		psErrLoc(n, i, j)=0;
+          for (int k = 0; k < 6; ++k)
+            psErrLoc(n, i, j) += temp56.constAt(n, i, k) * jacCCS2Loc.constAt(n, j, k);
+        }
+      }
+    }
+    }
+    else{
     PsErrLoc(jacCCS2Loc, psErr, temp56);
     PsErrLocTransp(temp56, jacCCS2Loc, psErrLoc);
-
+    }
     MPlexHV md;
 #pragma omp simd
     for (int n = 0; n < NN; ++n) {
@@ -1962,13 +1986,37 @@ namespace mkfit {
 
       // jacobian for converting from Loc to CCS (via Curv)
       MPlex65 jacLoc2CCS;
-      JacLoc2CCS(jacCurv2CCS, jacLoc2Curv, jacLoc2CCS);
+      if (curvError) Matriplex::multiplyGeneral(jacCurv2CCS, jacLoc2Curv, jacLoc2CCS); 
+      else JacLoc2CCS(jacCurv2CCS, jacLoc2Curv, jacLoc2CCS);
 
       // CCS error!
       MPlex65 temp65;
+      if(curvError){
+#pragma omp simd
+    for (int n = 0; n < NN; ++n) {
+      for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 5; ++j) {
+          temp65(n, i, j)=0;
+          for (int k = 0; k < 5; ++k)
+            temp65(n, i, j) += jacLoc2CCS.constAt(n, i, k) * psErrLoc_upd.constAt(n, k, j);
+        }
+      }
+    }
+#pragma omp simd
+    for (int n = 0; n < NN; ++n) {
+      for (int i = 0; i < 6; ++i) { 
+        for (int j = 0; j < 6; ++j) {
+                outErr(n, i, j)=0;
+          for (int k = 0; k < 5; ++k)
+            outErr(n, i, j) += temp65.constAt(n, i, k) * jacLoc2CCS.constAt(n, j, k);
+        }
+      }
+    }
+    }
+    else{
       OutErrCCS(jacLoc2CCS, psErrLoc_upd, temp65);
       OutErrCCSTransp(temp65, jacLoc2CCS, outErr);
-
+     }
       /*
       printf("\n");
       printf("lp_upd:\n");

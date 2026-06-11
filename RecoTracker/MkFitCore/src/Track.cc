@@ -108,9 +108,17 @@ namespace mkfit {
   }
 
   void TrackState::convertFromGlbCurvilinearToCCSError(){
-    const float px = parameters.At(3);
-    const float py = parameters.At(4);
-    const float pz = parameters.At(5);
+    const float invpt = parameters.At(3);
+    const float phi = parameters.At(4);
+    const float theta = parameters.At(5);
+    const float pt = 1.f / invpt;
+    float cosP = std::cos(phi);
+    float sinP = std::sin(phi);
+    float cosT = std::cos(theta);
+    float sinT = std::sin(theta);
+    const float px = cosP * pt;
+    const float py = sinP * pt;
+    const float pz = cosT * pt / sinT;
     SMatrix66 jac = jacobianCurvilinearToCCS(px, py, pz, charge);
     errors = ROOT::Math::Similarity(jac, errors);
   }

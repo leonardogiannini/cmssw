@@ -332,8 +332,19 @@ namespace {
     }
     //need to compute errorProp = jacCurv2CCS*errorPropCurv*jacCCS2Curv
     MPlex65 tmp;
+    if(curvError){
+     for (int n = 0; n < NN; ++n) {
+     for (int i = 0; i < 5; ++i) {
+     for (int j = 0; j < 5; ++j) {
+	     errorProp.At(n,i,j)=errorPropCurv.constAt(n,i,j);
+     }
+     }
+     }
+    }
+    else{
     JacErrPropCurv1(jacCurv2CCS, errorPropCurv, tmp);
     JacErrPropCurv2(tmp, jacCCS2Curv, errorProp);
+    }
     /*
     Matriplex::multiplyGeneral(jacCurv2CCS, errorPropCurv, tmp);
     for (int kk = 0; kk < 1; ++kk) {
@@ -364,9 +375,15 @@ namespace {
         std::cout << jacCCS2Curv.constAt(kk, i, j) << " ";
       std::cout << std::endl;;
       }
+      std::cout << "errorProp" << std::endl;
+      for (int i = 0; i < 6; ++i) {
+      for (int j = 0; j < 6; ++j)
+        std::cout << errorProp.constAt(kk, i, j) << " ";
+      std::cout << std::endl;;
+      }
     }
     Matriplex::multiplyGeneral(tmp, jacCCS2Curv, errorProp);
-    */
+    */ 
   }
 
   // from P.Avery's notes (http://www.phys.ufl.edu/~avery/fitting/transport.pdf eq. 5)
@@ -619,10 +636,11 @@ namespace mkfit {
     // Matriplex version of:
     // result.errors = ROOT::Math::Similarity(errorProp, outErr);
     MPlexLL temp{0.0f};
-    MultHelixPlaneProp(errorProp, outErr, temp);
-    MultHelixPlanePropTransp(errorProp, temp, outErr);
-    // MultHelixPropFull(errorProp, outErr, temp);
-    // for (int kk = 0; kk < 1; ++kk) {
+    //MultHelixPlaneProp(errorProp, outErr, temp);
+    //MultHelixPlanePropTransp(errorProp, temp, outErr);
+    MultHelixPropFull(errorProp, outErr, temp);
+    MultHelixPropTranspFull(errorProp, temp, outErr);
+    //for (int kk = 0; kk < 1; ++kk) {
     //   std::cout << "errorProp" << std::endl;
     //   for (int i = 0; i < 6; ++i) {
     // 	for (int j = 0; j < 6; ++j)
@@ -684,7 +702,7 @@ namespace mkfit {
           propSign(n, 0, 0) = (pathL(n, 0, 0) > 0.f ? 1.f : -1.f);
         }
       }
-      applyMaterialEffects(hitsRl, hitsXi, propSign, plNrm, outErr, outPar, N_proc);
+      applyMaterialEffects(hitsRl, hitsXi, propSign, plNrm, outErr, outPar, N_proc, curvError);
 #ifdef DEBUG
       if (debug && g_debug) {
         for (int kk = 0; kk < N_proc; ++kk) {
