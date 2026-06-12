@@ -124,12 +124,13 @@ namespace mkfit {
       const float thetaMSC = 0.0136f * (1.f + 0.038f * vdt::fast_logf(radL)) / (beta * p);  // eq 32.15
       const float thetaMSC2 = thetaMSC * thetaMSC * radL;
       if (curvError){
-//        if /*constexpr*/ (Config::usePtMultScat) {
-//         rederive because don't know correlation to q/p
-//       } else {
+      if /*constexpr*/ (Config::usePtMultScat) {
+          outErr.At(n, 1, 1) += thetaMSC2;
+          outErr.At(n, 2, 2) += thetaMSC2 * p2 * ipt2;
+        } else {
         outErr.At(n, 1, 1) += thetaMSC2; //lambda
         outErr.At(n, 2, 2) += thetaMSC2; //phi
-//       }
+       }
       }
       else{
       if /*constexpr*/ (Config::usePtMultScat) {
