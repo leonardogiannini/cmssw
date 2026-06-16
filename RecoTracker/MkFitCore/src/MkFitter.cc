@@ -35,7 +35,7 @@ namespace mkfit {
 
     m_Chi2.setVal(0);
     mtp.pack(m_Err[iC], m_Par[iC]);
-    m_Err[iC].scale(100.0f);
+    m_Err[iC].scale(10000.0f);
   }
 
   void MkFitter::bkReFitInputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end) {
@@ -68,7 +68,7 @@ namespace mkfit {
       index = iP;
 
     mtp.pack(m_Err[index], m_Par[index]);
-    m_Err[index].scale(100.0f);
+    m_Err[index].scale(10000.0f);
   }
 
   void MkFitter::reFitOutputTracks(TrackVec &cands, std::vector<int> inds, int beg, int end, int nFoundHits, bool bkw) {
