@@ -367,11 +367,10 @@ namespace {
              int q,
              float kinv) {
     const float A = delta0 * eta0 + delta1 * eta1 + delta2 * eta2;
-    const float ip = sinT * ipt;
-    const float p0[3] = {cosP / ipt, sinP / ipt, cosT / ip};
-    const float B = (p0[0] * eta0 + p0[1] * eta1 + p0[2] * eta2) * ip;
-    const float rho = kinv * ip;
-    const float C = -(eta0 * p0[1] - eta1 * p0[0]) * rho * 0.5f * ip;
+    const float p0[3] = {cosP * sinT, sinP * sinT, cosT}; // multiplied ip here instead of B,C
+    const float B = (p0[0] * eta0 + p0[1] * eta1 + p0[2] * eta2) ;
+    const float rho = kinv * sinT * ipt;
+    const float C = -(eta0 * p0[1] - eta1 * p0[0]) * rho * 0.5f ;
     //const float sqb2m4ac = std::sqrt(B * B - 4.f * A * C);
     //const float s1 = (-B + sqb2m4ac) * 0.5f / C;
     //const float s2 = (-B - sqb2m4ac) * 0.5f / C;
