@@ -281,12 +281,29 @@ void MkFitOutputTrackConverter::produce(edm::StreamID iID, edm::Event& iEvent, c
     for (auto& h : hitsVecs[i])
       hits->push_back(h);
 
-    reco::TrackExtra extra;
+    const TrackingRecHit& outerHit = hitsVecs[i].back();
+    GlobalPoint outerPos = outerHit.globalPosition();
+    unsigned int outerDetId = outerHit.geographicalId().rawId();
+
+    const TrackingRecHit& innerHit = hitsVecs[i].front();
+    GlobalPoint innerPos = innerHit.globalPosition();
+    unsigned int innerDetId = innerHit.geographicalId().rawId();
+
+    reco::TrackExtra extra(math::XYZPoint(outerPos.x(), outerPos.y(), outerPos.z()),
+                           trk.momentum(),  //to review
+                           true,
+                           math::XYZPoint(innerPos.x(), innerPos.y(), innerPos.z()),
+                           trk.momentum(),
+                           true,
+                           trk.covariance(),  // to review
+                           outerDetId,
+                           trk.covariance(),
+                           innerDetId,
+                           seeds[seedIndices[i]].direction(),
+                           edm::RefToBase<TrajectorySeed>(hseeds, seedIndices[i]));
 
     extra.setHits(ref_rechits, hidx, trk.numberOfValidHits());
     hidx += trk.numberOfValidHits();
-
-    extra.setSeedRef(edm::RefToBase<TrajectorySeed>(hseeds, seedIndices[i]));
 
     AlgebraicVector5 v = AlgebraicVector5(0, 0, 0, 0, 0);
     reco::TrackExtra::TrajParams trajParams(trk.numberOfValidHits(), LocalTrajectoryParameters(v, 1.));
